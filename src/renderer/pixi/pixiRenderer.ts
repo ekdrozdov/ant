@@ -1,5 +1,12 @@
 import { Viewport } from 'pixi-viewport'
-import { Application, Container, DisplayObject, Sprite, Ticker } from 'pixi.js'
+import {
+  Application,
+  Container,
+  DisplayObject,
+  PI_2,
+  Sprite,
+  Ticker,
+} from 'pixi.js'
 import { World } from '../../game/world'
 import { Renderer, RendererEvent } from '../renderer'
 import { RenderableKind } from '../renderable'
@@ -89,15 +96,12 @@ export class PixiRenderer
       tracker.delete(obj)
     })
 
-    // world.clock.on('day', () => {
-    //   console.log(`day ${world.clock.days}`)
-    // })
-
     const renderFrame = () => {
       for (const [{ renderable }, dObj] of tracker.entries()) {
         if (renderable.position) {
           dObj.x = renderable.position.x
           dObj.y = renderable.position.y
+          dObj.rotation = renderable.rotation + PI_2 / 4
         }
         if (renderable.state) {
           if (renderable.state === 'dead') dObj.rotation = 90

@@ -34,7 +34,7 @@ export class AntBase extends SceneObjectBase implements Ant {
     getWorld().scene.mount(
       new Mark({
         kind: 'animal-source',
-        position: this.renderable.position,
+        position: { ...this.renderable.position },
         state: 'default',
         rotation: 0,
       })
@@ -44,7 +44,7 @@ export class AntBase extends SceneObjectBase implements Ant {
     this.state = 'move'
   }
   rotate(angle: number): void {
-    this.renderable.rotation = angle
+    this.renderable.rotation = (angle * Math.PI * 2) / 360
   }
   face(position: Point): void {
     throw new Error('Method not implemented.')
