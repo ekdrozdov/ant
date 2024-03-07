@@ -5,7 +5,12 @@ export interface Point {
 
 export type RenderableState = 'default' | 'dead'
 
-export type RenderableKind = 'bunny' | 'tree' | 'tree-source' | 'animal-source'
+export type RenderableKind =
+  | 'bunny'
+  | 'tree'
+  | 'tree-source'
+  | 'animal-source'
+  | 'mark'
 
 /**
  * Contains a data to render an entity. This data will be synced with actual renderer every frame.

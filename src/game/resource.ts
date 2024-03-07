@@ -31,6 +31,8 @@ export class ResourceBase<T extends ResourceTag>
 export class Food extends ResourceBase<typeof RESOURCES.FOOD> {
   constructor() {
     super(RESOURCES.FOOD, new RenderableBase({ kind: 'tree-source' }))
+    this.renderable.state = 'default'
+    this.renderable.rotation = -Math.PI / 2
   }
 }
 

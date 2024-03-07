@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Launch Edge against localhost",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/src"
+      "webRoot": "${workspaceFolder}"
     },
     {
       "type": "msedge",
@@ -17,7 +17,7 @@
       "request": "launch",
       "runtimeArgs": ["--headless", "--remote-debugging-port=9222"],
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/src",
+      "webRoot": "${workspaceFolder}",
       "presentation": {
         "hidden": true
       }

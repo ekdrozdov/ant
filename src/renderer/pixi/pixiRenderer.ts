@@ -15,12 +15,13 @@ import { SceneObject } from '../../game/scene'
 import { EventEmitterBase } from '../../utils/events'
 import { MenuRegistry } from '../../ui/menu'
 
-const kindToSprite: Record<RenderableKind, string> = {
+const kindToSprite = {
+  mark: 'http://localhost:5173/assets/mark.png',
   bunny: 'http://localhost:5173/assets/bunny.png',
   tree: 'http://localhost:5173/assets/tree.png',
   'animal-source': 'http://localhost:5173/assets/animal-source.png',
   'tree-source': 'http://localhost:5173/assets/tree-source.png',
-}
+} as const
 
 export class PixiRenderer
   extends EventEmitterBase<RendererEvent>
@@ -63,6 +64,11 @@ export class PixiRenderer
           console.log('animal-source selected')
           return
         }
+        if (_e.key === 'f') {
+          e.select('FOOD')
+          console.log('FOOD selected')
+          return
+        }
       })
     })
 
@@ -101,10 +107,10 @@ export class PixiRenderer
         if (renderable.position) {
           dObj.x = renderable.position.x
           dObj.y = renderable.position.y
-          dObj.rotation = renderable.rotation + PI_2 / 4
+          dObj.rotation = renderable.rotation
         }
         if (renderable.state) {
-          if (renderable.state === 'dead') dObj.rotation = 90
+          if (renderable.state === 'dead') dObj.rotation = 0
         }
       }
     }

@@ -13,7 +13,7 @@ menuRegistry.register(new SpawnerSelector(renderer, world.scene))
 // const bunny = new Bunny()
 // world.scene.mount(bunny)
 const ant = new AntBase(0)
-ant.rotate(29)
+ant.rotate(Math.PI / 4)
 const scout = new Scout(ant)
 world.scene.mount(ant)
 
@@ -26,8 +26,12 @@ function setNextPos(r: Renderable, velocity: number, dt: number): void {
 
 let i = 0
 world.clock.on('tick', () => {
+  // Execute agent script.
   ++i % 10 === 0 && scout.execute()
-  setNextPos(ant.renderable, 2, 1)
+  // Execute physics.
+  if (ant.state === 'move') {
+    setNextPos(ant.renderable, 2, 1)
+  }
 })
 
 world.clock.setFreq(30)

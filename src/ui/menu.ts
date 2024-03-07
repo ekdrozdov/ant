@@ -1,3 +1,4 @@
+import { Food, RESOURCES } from '../game/resource'
 import { Scene } from '../game/scene'
 import { RendererEvent } from '../renderer/renderer'
 import { Event, EventEmitter, EventEmitterBase } from '../utils/events'
@@ -43,6 +44,12 @@ export class SpawnerSelector implements SelectorMenu {
       //   scene.mount(agent)
       //   return
       // }
+      if (this.selectee === RESOURCES.FOOD) {
+        const agent = new Food()
+        agent.renderable.position = e.position
+        scene.mount(agent)
+        return
+      }
     })
   }
   select(id: string): void {
