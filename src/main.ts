@@ -1,4 +1,5 @@
-import { AntBase, Scout } from './game/agent'
+import { AntBase } from './game/agent/agent'
+import { Scout } from './game/agent/ai/scout'
 import { WorldBase } from './game/world'
 import { PixiRenderer } from './renderer/pixi/pixiRenderer'
 import { Renderable } from './renderer/renderable'
@@ -10,12 +11,22 @@ const menuRegistry = new MenuRegistryBase()
 renderer.render(world, menuRegistry)
 menuRegistry.register(new SpawnerSelector(renderer, world.scene))
 
-// const bunny = new Bunny()
-// world.scene.mount(bunny)
-const ant = new AntBase(0)
-ant.rotate(Math.PI / 4)
-const scout = new Scout(ant)
-world.scene.mount(ant)
+Array.from(new Array(1)).forEach(() => {
+  const ant = new AntBase()
+  ant.rotate(Math.random())
+  const scout = new Scout(ant)
+  world.scene.mount(ant)
+
+  let i = 0
+  world.clock.on('tick', () => {
+    // Execute agent script.
+    ++i % 10 === 0 && scout.execute()
+    // Execute physics.
+    if (ant.state === 'move') {
+      setNextPos(ant.renderable, 2, 1)
+    }
+  })
+})
 
 function setNextPos(r: Renderable, velocity: number, dt: number): void {
   const dx = velocity * dt * Math.cos(r.rotation)
@@ -24,18 +35,9 @@ function setNextPos(r: Renderable, velocity: number, dt: number): void {
   r.position.y += dy
 }
 
-let i = 0
-world.clock.on('tick', () => {
-  // Execute agent script.
-  ++i % 10 === 0 && scout.execute()
-  // Execute physics.
-  if (ant.state === 'move') {
-    setNextPos(ant.renderable, 2, 1)
-  }
-})
-
 world.clock.setFreq(30)
 world.clock.resume()
+// setTimeout(() => world.clock.setFreq(300), 3000)
 
 export function getWorld() {
   return world

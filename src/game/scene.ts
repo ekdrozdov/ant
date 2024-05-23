@@ -1,5 +1,5 @@
 import { Disposable, DisposableStorage } from '../utils/lifecycle'
-import { Renderable, RenderableKind } from '../renderer/renderable'
+import { Point, Renderable, RenderableKind } from '../renderer/renderable'
 import { World } from './world'
 import { EventEmitter, EventEmitterBase } from '../utils/events'
 
