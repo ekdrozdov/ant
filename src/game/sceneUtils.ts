@@ -2,7 +2,7 @@ import { getWorld } from '../main'
 import { distance } from '../utils/math'
 import { SceneObject } from './scene'
 
-export function allObjectsInRadius(
+export function findObjectsInRadius(
   center: SceneObject,
   radius: number
 ): readonly SceneObject[] {

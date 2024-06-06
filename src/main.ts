@@ -24,6 +24,7 @@ Array.from(new Array(1)).forEach(() => {
     // Execute physics.
     if (ant.state === 'move') {
       setNextPos(ant.renderable, 2, 1)
+      world.scene.reindex(ant)
     }
   })
 })

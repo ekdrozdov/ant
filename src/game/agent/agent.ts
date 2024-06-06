@@ -3,7 +3,7 @@ import { Point, Renderable, RenderableBase } from '../../renderer/renderable'
 import { PI, PI_2, distance, rotationOf } from '../../utils/math'
 import { Food, RESOURCES, Resource, ResourceTag } from '../resource'
 import { SceneObject, SceneObjectBase } from '../scene'
-import { allObjectsInRadius as findObjectsInRadius } from '../sceneUtils'
+import { findObjectsInRadius } from '../sceneUtils'
 
 export interface Agent {
   execute(): void
