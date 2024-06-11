@@ -1,7 +1,11 @@
-import { Disposable, DisposableStorage } from "../utils/lifecycle";
-import { Point, Renderable, RenderableKind } from "../renderer/renderable";
-import { World } from "./world";
-import { EventEmitter, EventEmitterBase } from "../utils/events";
+import { type Disposable, DisposableStorage } from "../utils/lifecycle";
+import {
+	type Point,
+	type Renderable,
+	RenderableKind,
+} from "../renderer/renderable";
+import type { World } from "./world";
+import { type EventEmitter, EventEmitterBase } from "../utils/events";
 
 export interface Meta {
 	readonly id: number;
@@ -45,7 +49,9 @@ export interface Scene extends EventEmitter<SceneEvents> {
 	dismount(obj: SceneObject): void;
 	reindex(obj: SceneObject): void;
 	all(): readonly SceneObject[];
-	all<T extends SceneObject>(_class: new (...args: any) => T): readonly T[];
+	all<T extends SceneObject>(
+		_class: new (...args: unknown[]) => T,
+	): readonly T[];
 }
 
 const INDEX_STEP = 10;
@@ -102,19 +108,24 @@ export class SceneBase extends EventEmitterBase<SceneEvents> implements Scene {
 	}
 
 	all(): readonly SceneObject[];
-	all<T extends SceneObject>(_class: new (...args: any) => T): readonly T[];
+	all<T extends SceneObject>(
+		_class: new (...args: unknown[]) => T,
+	): readonly T[];
 	all<T extends SceneObject>(
 		_class?: new () => T,
 	): readonly T[] | readonly SceneObject[] {
 		if (!_class) return this._objs;
 		return this._objs.filter((obj) => obj instanceof _class);
 	}
-	findInSquare(center: Point, halfSize: number): readonly SceneObject[] {
-		const centerAddress =
-			this.indexBaseStep * Math.trunc(center.y / INDEX_STEP) +
-			Math.trunc(center.x / INDEX_STEP);
 
-		// select candidates using center and halfSize
+	findInSquare(center: Point, radius: number): readonly SceneObject[] {
+		const centerAddress = this._indexOf(center);
+
+		// select candidates using center and radius
+		// candidate cells: radius to cells: ceil(radius/step)
+		const radiusInCells = Math.ceil(radius / INDEX_STEP);
+		// candidate cells indexes: rowRadius
+
 		// cast up/down/r/l positions, and include indexes they hit.
 		// select sets up-down left-right
 
