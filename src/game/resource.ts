@@ -1,39 +1,42 @@
-import { RenderableBase, Renderable } from '../renderer/renderable'
-import { SceneObjectBase } from './scene'
+import { RenderableBase, Renderable } from "../renderer/renderable";
+import { SceneObjectBase } from "./scene";
 
 export const RESOURCES = {
-  MATERIAL: 'MATERIAL',
-  FOOD: 'FOOD',
-  HOME: 'HOME',
-} as const
+	MATERIAL: "MATERIAL",
+	FOOD: "FOOD",
+	HOME: "HOME",
+} as const;
 
-export type ResourceTag = (typeof RESOURCES)[keyof typeof RESOURCES]
+export type ResourceTag = (typeof RESOURCES)[keyof typeof RESOURCES];
 
 export class Tree extends SceneObjectBase {
-  constructor() {
-    super(new RenderableBase({ kind: 'tree' }))
-  }
+	constructor() {
+		super(new RenderableBase({ kind: "tree" }));
+	}
 }
 
 export interface Resource<T extends ResourceTag> {
-  tag: T
+	tag: T;
 }
 
 export class ResourceBase<T extends ResourceTag>
-  extends SceneObjectBase
-  implements Resource<T>
+	extends SceneObjectBase
+	implements Resource<T>
 {
-  constructor(public tag: T, renderable: Renderable) {
-    super(renderable)
-  }
+	constructor(
+		public tag: T,
+		renderable: Renderable,
+	) {
+		super(renderable);
+	}
 }
 
 export class Food extends ResourceBase<typeof RESOURCES.FOOD> {
-  constructor() {
-    super(RESOURCES.FOOD, new RenderableBase({ kind: 'tree-source' }))
-    this.renderable.state = 'default'
-    this.renderable.rotation = -Math.PI / 2
-  }
+	constructor() {
+		super(RESOURCES.FOOD, new RenderableBase({ kind: "tree-source" }));
+		this.renderable.state = "default";
+		this.renderable.rotation = -Math.PI / 2;
+	}
 }
 
 // export class Material extends ResourceBase {
