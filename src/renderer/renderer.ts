@@ -1,12 +1,21 @@
 import { World } from "../game/world";
 import { MenuRegistry } from "../ui/menu";
-import { EventEmitter } from "../utils/events";
+import { Event, EventEmitter } from "../utils/events";
 import { Point } from "./renderable";
 
-export type RendererEvent = {
-	click: { position: Point };
-};
+export interface ClickEvent {
+  position: Point;
+}
 
-export interface Renderer extends EventEmitter<RendererEvent> {
-	render(world: World, registry: MenuRegistry): void;
+export interface RendererEvents {
+  onClick: Event<ClickEvent>;
+}
+
+export interface Renderer extends RendererEvents {
+  render(world: World, registry: MenuRegistry): void;
+}
+
+export class RendererBase {
+  protected readonly _onClick = new EventEmitter<ClickEvent>();
+  readonly onClick = this._onClick.event;
 }

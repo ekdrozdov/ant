@@ -18,7 +18,7 @@ Array.from(new Array(1)).forEach(() => {
 	world.scene.mount(ant);
 
 	let i = 0;
-	world.clock.on("tick", () => {
+	world.clock.onTick(() => {
 		// Execute agent script.
 		++i % 10 === 0 && scout.execute();
 		// Execute physics.
