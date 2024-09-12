@@ -1,10 +1,10 @@
 import { Viewport } from "pixi-viewport";
 import { Application, type DisplayObject, Sprite } from "pixi.js";
-import type { World } from "../../game/world";
-import { type Renderer, RendererBase } from "../renderer";
-import type { Disposable } from "../../utils/lifecycle";
 import type { SceneObject } from "../../game/scene";
+import type { World } from "../../game/world";
 import type { MenuRegistry } from "../../ui/menu";
+import type { Disposable } from "../../utils/lifecycle";
+import { type Renderer, RendererBase } from "../renderer";
 
 const kindToSprite = {
 	mark: "http://localhost:5173/assets/mark.png",
@@ -23,7 +23,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			background: "#1099bb",
 			resizeTo: window,
 		});
-		document.body.appendChild(this._app.view as any);
+		document.body.appendChild(this._app.view as unknown as Node);
 	}
 	render(world: World, registry: MenuRegistry): void {
 		this.session?.dispose();
@@ -69,7 +69,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			worldHeight: world.size.y,
 			events: this._app.renderer.events,
 		});
-		this._app.stage.addChild(viewport as any);
+		this._app.stage.addChild(viewport);
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {

@@ -8,7 +8,9 @@ export class DisposableStorage implements Disposable {
 		this._storage.push(d);
 	}
 	dispose(): void {
-		this._storage.forEach(({ dispose }) => dispose());
+		for (const { dispose } of this._storage) {
+			dispose();
+		}
 		this._storage = [];
 	}
 }

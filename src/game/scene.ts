@@ -1,7 +1,11 @@
-import { Disposable, DisposableStorage } from "../utils/lifecycle";
-import { Point, Renderable, RenderableKind } from "../renderer/renderable";
-import { World } from "./world";
-import { Event, EventEmitter } from "../utils/events";
+import {
+	type Point,
+	type Renderable,
+	RenderableKind,
+} from "../renderer/renderable";
+import { type Event, EventEmitter } from "../utils/events";
+import { type Disposable, DisposableStorage } from "../utils/lifecycle";
+import type { World } from "./world";
 
 export interface Meta {
 	readonly id: number;
@@ -50,7 +54,9 @@ export interface Scene {
 	dismount(obj: SceneObject): void;
 	reindex(obj: SceneObject): void;
 	all(): readonly SceneObject[];
-	all<T extends SceneObject>(_class: new (...args: any) => T): readonly T[];
+	all<T extends SceneObject>(
+		_class: new (...args: unknown[]) => T,
+	): readonly T[];
 }
 
 const INDEX_STEP = 10;
@@ -111,7 +117,9 @@ export class SceneBase implements Scene {
 	}
 
 	all(): readonly SceneObject[];
-	all<T extends SceneObject>(_class: new (...args: any) => T): readonly T[];
+	all<T extends SceneObject>(
+		_class: new (...args: unknown[]) => T,
+	): readonly T[];
 	all<T extends SceneObject>(
 		_class?: new () => T,
 	): readonly T[] | readonly SceneObject[] {

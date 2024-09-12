@@ -1,7 +1,7 @@
-import { World } from "../game/world";
-import { MenuRegistry } from "../ui/menu";
-import { Event, EventEmitter } from "../utils/events";
-import { Point } from "./renderable";
+import type { World } from "../game/world";
+import type { MenuRegistry } from "../ui/menu";
+import { type Event, EventEmitter } from "../utils/events";
+import type { Point } from "./renderable";
 
 export interface ClickEvent {
 	position: Point;

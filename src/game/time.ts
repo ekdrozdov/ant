@@ -1,4 +1,4 @@
-import { Event, EventEmitter } from "../utils/events";
+import { type Event, EventEmitter } from "../utils/events";
 
 export interface GameClock {
 	readonly onYear: Event;

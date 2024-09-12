@@ -16,6 +16,8 @@ export class EventEmitter<T = void> {
 	};
 
 	dispatch(event: T): void {
-		this._listeners.forEach((l) => l(event));
+		for (const listener of this._listeners) {
+			listener(event);
+		}
 	}
 }

@@ -1,6 +1,6 @@
-import { Point } from "../renderer/renderable";
-import { Scene, SceneBase } from "./scene";
-import { GameClock, GameClockBase } from "./time";
+import type { Point } from "../renderer/renderable";
+import { type Scene, SceneBase } from "./scene";
+import { type GameClock, GameClockBase } from "./time";
 
 export interface World {
 	readonly size: Point;

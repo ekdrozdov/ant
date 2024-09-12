@@ -1,8 +1,12 @@
 import { getWorld } from "../../main";
-import { Point, Renderable, RenderableBase } from "../../renderer/renderable";
+import {
+	type Point,
+	type Renderable,
+	RenderableBase,
+} from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import { Food, RESOURCES, Resource, ResourceTag } from "../resource";
-import { SceneObject, SceneObjectBase } from "../scene";
+import { type SceneObject, SceneObjectBase } from "../scene";
 import { findObjectsInRadius } from "../sceneUtils";
 
 export interface Agent {
@@ -104,11 +108,11 @@ class Mark extends SceneObjectBase {
 	}
 }
 
-export function isMark(o: any): o is Mark {
+export function isMark(o: unknown): o is Mark {
 	return o instanceof Mark;
 }
 
-export function isFood(o: any): o is Food {
+export function isFood(o: unknown): o is Food {
 	return o instanceof Food;
 }
 

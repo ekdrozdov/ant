@@ -1,7 +1,7 @@
-import { Agent, Ant, NOISE_ROTATION, isFood, isMark } from "../agent";
+import { type Agent, type Ant, NOISE_ROTATION, isFood, isMark } from "../agent";
 
 import { PI } from "../../../utils/math";
-import { Food } from "../../resource";
+import type { Food } from "../../resource";
 
 export class Scout implements Agent {
 	private traceTarget: "trace" | "restart" | "backtrace" = "trace";
@@ -53,12 +53,11 @@ export class Scout implements Agent {
 						console.debug(`${this.ant.id} executing restart`);
 						this.traceTarget = "restart";
 						return;
-					} else {
-						this.ant.rotate(PI);
-						console.debug(`${this.ant.id} executing backtrace`);
-						this.traceTarget = "backtrace";
-						return;
 					}
+					this.ant.rotate(PI);
+					console.debug(`${this.ant.id} executing backtrace`);
+					this.traceTarget = "backtrace";
+					return;
 				case "backtrace":
 					this.ant.rotate(PI);
 					console.debug(`${this.ant.id} executing trace`);
@@ -67,9 +66,10 @@ export class Scout implements Agent {
 				case "restart":
 					this.execute = this.scan;
 					return;
-				default:
+				default: {
 					const e: never = this.traceTarget;
 					throw new Error(`Unknown switch key ${e}`);
+				}
 			}
 		}
 		this.ant.face(mark.renderable.position);

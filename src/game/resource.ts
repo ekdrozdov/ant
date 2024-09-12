@@ -1,4 +1,4 @@
-import { RenderableBase, Renderable } from "../renderer/renderable";
+import { type Renderable, RenderableBase } from "../renderer/renderable";
 import { SceneObjectBase } from "./scene";
 
 export const RESOURCES = {

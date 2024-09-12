@@ -1,5 +1,5 @@
-import { Point, Renderable } from "../renderer/renderable";
-import { Scene, SceneObject } from "../game/scene";
+import type { Scene, SceneObject } from "../game/scene";
+import type { Point } from "../renderer/renderable";
 
 export class Spawn {
 	constructor(private readonly _scene: Scene) {}

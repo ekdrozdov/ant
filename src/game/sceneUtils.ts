@@ -1,6 +1,6 @@
 import { getWorld } from "../main";
 import { distance } from "../utils/math";
-import { SceneObject } from "./scene";
+import type { SceneObject } from "./scene";
 
 export function findObjectsInRadius(
 	center: SceneObject,

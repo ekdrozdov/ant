@@ -11,7 +11,7 @@ const menuRegistry = new MenuRegistryBase();
 renderer.render(world, menuRegistry);
 menuRegistry.register(new SpawnerSelector(renderer, world.scene));
 
-Array.from(new Array(1)).forEach(() => {
+for (const _ of Array.from(new Array(1))) {
 	const ant = new AntBase();
 	ant.rotate(Math.random());
 	const scout = new Scout(ant);
@@ -27,7 +27,7 @@ Array.from(new Array(1)).forEach(() => {
 			world.scene.reindex(ant);
 		}
 	});
-});
+}
 
 function setNextPos(r: Renderable, velocity: number, dt: number): void {
 	const dx = velocity * dt * Math.cos(r.rotation);
