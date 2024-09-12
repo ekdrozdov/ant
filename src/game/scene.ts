@@ -1,7 +1,7 @@
 import {
-	type Point,
 	type Renderable,
 	RenderableKind,
+	type Vector2d,
 } from "../renderer/renderable";
 import { type Event, EventEmitter } from "../utils/events";
 import { type Disposable, DisposableStorage } from "../utils/lifecycle";
@@ -126,7 +126,7 @@ export class SceneBase implements Scene {
 		if (!_class) return this._objs;
 		return this._objs.filter((obj) => obj instanceof _class);
 	}
-	findInSquare(center: Point, halfSize: number): readonly SceneObject[] {
+	findInSquare(center: Vector2d, halfSize: number): readonly SceneObject[] {
 		const centerAddress =
 			this.indexBaseStep * Math.trunc(center.y / INDEX_STEP) +
 			Math.trunc(center.x / INDEX_STEP);

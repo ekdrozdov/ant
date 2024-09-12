@@ -1,8 +1,8 @@
 import { getWorld } from "../../main";
 import {
-	type Point,
 	type Renderable,
 	RenderableBase,
+	type Vector2d,
 } from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import { Food, RESOURCES, Resource, ResourceTag } from "../resource";
@@ -20,7 +20,7 @@ export interface Ant {
 	mark(attracting?: boolean): void;
 	move(): void;
 	rotate(angle: number): void;
-	face(position: Point): void;
+	face(position: Vector2d): void;
 	stop(): void;
 	refuel(): void;
 	getVisibleObjects(): readonly SceneObject[];
@@ -63,7 +63,7 @@ export class AntBase extends SceneObjectBase implements Ant {
 		this.renderable.rotation =
 			(this.renderable.rotation + normalizedRotation) % PI_2;
 	}
-	face(target: Point): void {
+	face(target: Vector2d): void {
 		const targetVector = {
 			x: target.x - this.renderable.position.x,
 			y: target.y - this.renderable.position.y,

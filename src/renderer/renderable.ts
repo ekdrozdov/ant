@@ -1,4 +1,4 @@
-export interface Point {
+export interface Vector2d {
 	x: number;
 	y: number;
 }
@@ -18,12 +18,12 @@ export type RenderableKind =
 export interface Renderable {
 	readonly kind: RenderableKind;
 	state: RenderableState;
-	position: Point;
+	position: Vector2d;
 	rotation: number;
 }
 
 export class RenderableBase implements Renderable {
-	position: Point;
+	position: Vector2d;
 	readonly kind: RenderableKind;
 	state: RenderableState;
 	rotation: number;

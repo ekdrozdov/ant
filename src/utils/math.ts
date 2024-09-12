@@ -1,4 +1,4 @@
-import type { Point } from "../renderer/renderable";
+import type { Vector2d } from "../renderer/renderable";
 
 export const PI = Math.PI;
 export const PI_2 = Math.PI * 2;
@@ -10,14 +10,14 @@ export function crop(target: number, absLimit: number) {
 	return Math.min(target, absLimit);
 }
 
-export function distance(source: Point, target: Point) {
+export function distance(source: Vector2d, target: Vector2d) {
 	return Math.sqrt(
 		(source.x - target.x) * (source.x - target.x) +
 			(source.y - target.y) * (source.y - target.y),
 	);
 }
 
-export function rotationOf(position: Point) {
+export function rotationOf(position: Vector2d) {
 	// Ignore the possibility of zero coordinates.
 	const rotation = Math.acos(
 		Math.abs(position.x) /

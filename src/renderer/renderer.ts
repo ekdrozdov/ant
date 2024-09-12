@@ -1,10 +1,10 @@
 import type { World } from "../game/world";
 import type { MenuRegistry } from "../ui/menu";
 import { type Event, EventEmitter } from "../utils/events";
-import type { Point } from "./renderable";
+import type { Vector2d } from "./renderable";
 
 export interface ClickEvent {
-	position: Point;
+	position: Vector2d;
 }
 
 export interface RendererEvents {
