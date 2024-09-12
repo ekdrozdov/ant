@@ -1,4 +1,4 @@
-import { Point } from "../renderer/renderable";
+import type { Point } from "../renderer/renderable";
 
 export const PI = Math.PI;
 export const PI_2 = Math.PI * 2;

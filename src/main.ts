@@ -2,7 +2,7 @@ import { AntBase } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
 import { WorldBase } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
-import { Renderable } from "./renderer/renderable";
+import type { Renderable } from "./renderer/renderable";
 import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 
 const world = new WorldBase({ size: { x: 500, y: 500 } });

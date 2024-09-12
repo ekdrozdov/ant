@@ -2,7 +2,8 @@
   "name": "ant-sim",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "compile:watch": "tsc --watch --noEmit"
   },
   "dependencies": {
     "@pixi/utils": "7.3.2",

@@ -7,9 +7,14 @@
       "problemMatcher": [],
       "label": "npm: dev",
       "detail": "vite",
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
+      "option": "watch",
     }
   ]
 }
