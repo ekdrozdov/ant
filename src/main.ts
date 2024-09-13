@@ -1,11 +1,12 @@
 import { AntBase } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
-import { WorldBase } from "./game/world";
+import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
 import type { Renderable } from "./renderer/renderable";
 import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 
 const world = new WorldBase({ size: { x: 500, y: 500 } });
+initWorld(world);
 const renderer = new PixiRenderer();
 const menuRegistry = new MenuRegistryBase();
 renderer.render(world, menuRegistry);
@@ -24,7 +25,7 @@ for (const _ of Array.from(new Array(1))) {
 		// Execute physics.
 		if (ant.state === "move") {
 			setNextPos(ant.renderable, 2, 1);
-			world.scene.reindex(ant);
+			// world.scene.reindex(ant);
 		}
 	});
 }
@@ -38,8 +39,3 @@ function setNextPos(r: Renderable, velocity: number, dt: number): void {
 
 world.clock.setFreq(30);
 world.clock.resume();
-// setTimeout(() => world.clock.setFreq(300), 3000)
-
-export function getWorld() {
-	return world;
-}

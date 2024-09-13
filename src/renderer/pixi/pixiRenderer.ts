@@ -69,7 +69,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			worldHeight: world.size.y,
 			events: this._app.renderer.events,
 		});
-		this._app.stage.addChild(viewport);
+		this._app.stage.addChild(viewport as DisplayObject);
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {
@@ -80,8 +80,8 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			if (!obj.renderable.kind) throw new Error("Object kind is undefined");
 			const sprite = Sprite.from(kindToSprite[obj.renderable.kind]);
 			sprite.anchor.set(0.5);
-			viewport.addChild(sprite);
-			tracker.set(obj, sprite);
+			viewport.addChild(sprite as DisplayObject);
+			tracker.set(obj, sprite as DisplayObject);
 		});
 		world.scene.onDismount(({ obj }) => {
 			const sprite = tracker.get(obj);
@@ -108,7 +108,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 		this.session = {
 			dispose: () => {
 				this._app.ticker.remove(renderFrame);
-				this._app.stage.removeChild(viewport);
+				this._app.stage.removeChild(viewport as DisplayObject);
 				uiListener.dispose();
 			},
 		};

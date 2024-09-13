@@ -1,13 +1,13 @@
-import { getWorld } from "../../main";
 import {
 	type Renderable,
 	RenderableBase,
 	type Vector2d,
 } from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
-import { Food, RESOURCES, Resource, ResourceTag } from "../resource";
+import { Food } from "../resource";
 import { type SceneObject, SceneObjectBase } from "../scene/scene";
 import { findObjectsInRadius } from "../scene/scene";
+import { getWorld } from "../world";
 
 export interface Agent {
 	execute(): void;

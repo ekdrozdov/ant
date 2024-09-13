@@ -38,15 +38,3 @@ export class Food extends ResourceBase<typeof RESOURCES.FOOD> {
 		this.renderable.rotation = -Math.PI / 2;
 	}
 }
-
-// export class Material extends ResourceBase {
-//   constructor() {
-//     super(RESOURCES.MATERIAL, new RenderableBase({ kind: 'animal-source' }))
-//   }
-// }
-
-// export class Home extends ResourceBase {
-//   constructor() {
-//     super(RESOURCES.MATERIAL, new RenderableBase({ kind: 'animal-source' }))
-//   }
-// }

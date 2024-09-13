@@ -1,5 +1,4 @@
 import type { Vector2d } from "../../renderer/renderable";
-import type { Disposable } from "../../utils/lifecycle";
 import type { SceneObject } from "./scene";
 
 interface Indexer {
@@ -11,30 +10,31 @@ interface Indexer {
 
 /**
  * Initializes index cells as objects hit them.
+ * Position is assumed to be within scene boundaries, otherwise the behavior is undetermined.
  */
-export class LazyIndexer implements Indexer {
+export class SceneIndexer implements Indexer {
 	// Scene position stored into cells with left-including right-excluding boundies:
 	// [0, 1), [1, 2), ... (for step = 1)
-	private readonly flattenedCells: Set<SceneObject>[] = [];
+	private readonly flattenedCells: Set<SceneObject>[];
 	private readonly columnsInRow: number;
 	constructor(
 		private readonly step: number,
-		sceneDimensions: Vector2d,
+		size: Vector2d,
 	) {
-		if (sceneDimensions.x % step !== 0) {
+		if (size.x % step !== 0 || size.y % step !== 0) {
 			throw new Error(
-				`World size width must be multiple of ${step}, but got ${sceneDimensions.x}`,
+				`Size of the space to be indexed must be multiple of ${step}, but got ${size}`,
 			);
 		}
-		this.columnsInRow = sceneDimensions.x / step;
+		this.columnsInRow = size.x / step;
+		const rows = size.y / step;
+		this.flattenedCells = Array.from(Array(this.columnsInRow * rows)).map(
+			() => new Set(),
+		);
 	}
 
 	register(obj: SceneObject) {
 		const i = this.indexOf(obj.renderable.position);
-		// lazy init
-		if (!this.flattenedCells[i]) {
-			this.flattenedCells[i] = new Set();
-		}
 		this.flattenedCells[i].add(obj);
 	}
 
@@ -60,6 +60,7 @@ export class LazyIndexer implements Indexer {
 				cells.push(this.flattenedCells[this.columnsInRow * row + column]);
 			}
 		}
+
 		return Array.from(
 			cells.reduce((union, cell) => union.union(cell), new Set()).values(),
 		);
