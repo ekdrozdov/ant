@@ -12,7 +12,7 @@ interface Indexer {
 /**
  * Initializes index cells as objects hit them.
  */
-class LazyIndexer implements Indexer {
+export class LazyIndexer implements Indexer {
 	// Scene position stored into cells with left-including right-excluding boundies:
 	// [0, 1), [1, 2), ... (for step = 1)
 	private readonly flattenedCells: Set<SceneObject>[] = [];
