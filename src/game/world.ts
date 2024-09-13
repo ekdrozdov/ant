@@ -1,5 +1,5 @@
 import type { Vector2d } from "../renderer/renderable";
-import { type Scene, SceneBase } from "./scene";
+import { type Scene, SceneBase } from "./scene/scene";
 import { type GameClock, GameClockBase } from "./time";
 
 export interface World {

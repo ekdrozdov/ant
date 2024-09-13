@@ -1,11 +1,13 @@
+import { getWorld } from "../../main";
 import {
 	type Renderable,
 	RenderableKind,
 	type Vector2d,
-} from "../renderer/renderable";
-import { type Event, EventEmitter } from "../utils/events";
-import { type Disposable, DisposableStorage } from "../utils/lifecycle";
-import type { World } from "./world";
+} from "../../renderer/renderable";
+import { type Event, EventEmitter } from "../../utils/events";
+import { type Disposable, DisposableStorage } from "../../utils/lifecycle";
+import { distance } from "../../utils/math";
+import type { World } from "../world";
 
 export interface Meta {
 	readonly id: number;
@@ -137,4 +139,17 @@ export class SceneBase implements Scene {
 
 		return [];
 	}
+}
+
+export function findObjectsInRadius(
+	center: SceneObject,
+	radius: number,
+): readonly SceneObject[] {
+	return getWorld()
+		.scene.all()
+		.filter(
+			(obj) =>
+				center !== obj &&
+				distance(center.renderable.position, obj.renderable.position) < radius,
+		);
 }

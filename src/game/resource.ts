@@ -1,5 +1,5 @@
 import { type Renderable, RenderableBase } from "../renderer/renderable";
-import { SceneObjectBase } from "./scene";
+import { SceneObjectBase } from "./scene/scene";
 
 export const RESOURCES = {
 	MATERIAL: "MATERIAL",

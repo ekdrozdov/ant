@@ -1,4 +1,4 @@
-import type { Scene, SceneObject } from "../game/scene";
+import type { Scene, SceneObject } from "../game/scene/scene";
 import type { Vector2d } from "../renderer/renderable";
 
 export class Spawn {

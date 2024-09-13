@@ -6,8 +6,8 @@ import {
 } from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import { Food, RESOURCES, Resource, ResourceTag } from "../resource";
-import { type SceneObject, SceneObjectBase } from "../scene";
-import { findObjectsInRadius } from "../sceneUtils";
+import { type SceneObject, SceneObjectBase } from "../scene/scene";
+import { findObjectsInRadius } from "../scene/scene";
 
 export interface Agent {
 	execute(): void;

@@ -1,5 +1,5 @@
 import { Food, RESOURCES } from "../game/resource";
-import type { Scene } from "../game/scene";
+import type { Scene } from "../game/scene/scene";
 import type { RendererEvents } from "../renderer/renderer";
 import { type Event, EventEmitter } from "../utils/events";
 

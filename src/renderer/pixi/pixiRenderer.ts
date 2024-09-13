@@ -1,6 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { Application, type DisplayObject, Sprite } from "pixi.js";
-import type { SceneObject } from "../../game/scene";
+import type { SceneObject } from "../../game/scene/scene";
 import type { World } from "../../game/world";
 import type { MenuRegistry } from "../../ui/menu";
 import type { Disposable } from "../../utils/lifecycle";

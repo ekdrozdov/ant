@@ -1,5 +1,5 @@
-import type { Vector2d } from "../renderer/renderable";
-import type { Disposable } from "../utils/lifecycle";
+import type { Vector2d } from "../../renderer/renderable";
+import type { Disposable } from "../../utils/lifecycle";
 import type { SceneObject } from "./scene";
 
 interface Indexer {
@@ -55,8 +55,6 @@ class LazyIndexer implements Indexer {
 		const indexRowBottom = Math.trunc(scenePositionBottom / this.step);
 
 		const cells: Set<SceneObject>[] = [];
-		// for rows from top to bottom
-		// for columns from left to right
 		for (let row = indexRowTop; row <= indexRowBottom; ++row) {
 			for (let column = indexColumnLeft; column <= indexColumnRight; ++column) {
 				cells.push(this.flattenedCells[this.columnsInRow * row + column]);

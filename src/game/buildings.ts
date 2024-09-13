@@ -1,4 +1,4 @@
-import { SceneObjectBase } from "./scene";
+import { SceneObjectBase } from "./scene/scene";
 
 export class Building extends SceneObjectBase {}
 
