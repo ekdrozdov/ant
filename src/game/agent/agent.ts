@@ -5,9 +5,13 @@ import {
 } from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import { Food } from "../resource";
-import { type SceneObject, SceneObjectBase } from "../scene/scene";
-import { findObjectsInRadius } from "../scene/scene";
-import { getWorld } from "../world";
+import {
+	type DynamicSceneObject,
+	type SceneObjectBase,
+	SceneObjectImpl,
+	type StaticSceneObject,
+} from "../scene/scene";
+import { type World, getWorld } from "../world";
 
 export interface Agent {
 	execute(): void;
@@ -23,9 +27,9 @@ export interface Ant {
 	face(position: Vector2d): void;
 	stop(): void;
 	refuel(): void;
-	getVisibleObjects(): readonly SceneObject[];
-	getVisibleObjectsInfront(): readonly SceneObject[];
-	distanceTo(target: SceneObject): number;
+	getVisibleObjects(): readonly SceneObjectBase[];
+	getVisibleObjectsInfront(): readonly SceneObjectBase[];
+	distanceTo(target: SceneObjectBase): number;
 }
 
 let id = 0;
@@ -33,17 +37,24 @@ function getId() {
 	return id++;
 }
 
-export class AntBase extends SceneObjectBase implements Ant {
+export class AntBase
+	extends SceneObjectImpl
+	implements Ant, DynamicSceneObject
+{
+	kind = "dynamic" as const;
 	state: "move" | "idle" = "idle";
 	fuel = 100;
+	velocity = 1;
 	private readonly visibilityHalfAngle = Math.PI / 2;
 	private readonly visionDistance = 100;
+	protected readonly world: World;
 	public readonly id: number = getId();
 	constructor() {
 		super(new RenderableBase({ kind: "bunny" }));
+		this.world = getWorld();
 	}
 	mark(attracting = false): void {
-		getWorld().scene.mount(
+		this.world.scene.mount(
 			new Mark(this.id, attracting, {
 				kind: "mark",
 				position: { ...this.renderable.position },
@@ -77,28 +88,31 @@ export class AntBase extends SceneObjectBase implements Ant {
 	refuel(): void {
 		throw new Error("Method not implemented.");
 	}
-	getVisibleObjects(): readonly SceneObject[] {
-		return findObjectsInRadius(this, this.visionDistance);
+	getVisibleObjects(): readonly SceneObjectBase[] {
+		return this.world.scene.findObjectsInRadius(this, this.visionDistance);
 	}
-	getVisibleObjectsInfront(): readonly SceneObject[] {
-		return findObjectsInRadius(this, this.visionDistance).filter((obj) => {
-			const targetVector = {
-				x: obj.renderable.position.x - this.renderable.position.x,
-				y: obj.renderable.position.y - this.renderable.position.y,
-			};
-			const targetRotation = rotationOf(targetVector);
-			return (
-				Math.abs(targetRotation - this.renderable.rotation) <=
-				this.visibilityHalfAngle
-			);
-		});
+	getVisibleObjectsInfront(): readonly SceneObjectBase[] {
+		return this.world.scene
+			.findObjectsInRadius(this, this.visionDistance)
+			.filter((obj) => {
+				const targetVector = {
+					x: obj.renderable.position.x - this.renderable.position.x,
+					y: obj.renderable.position.y - this.renderable.position.y,
+				};
+				const targetRotation = rotationOf(targetVector);
+				return (
+					Math.abs(targetRotation - this.renderable.rotation) <=
+					this.visibilityHalfAngle
+				);
+			});
 	}
-	distanceTo(target: SceneObject): number {
+	distanceTo(target: SceneObjectBase): number {
 		return distance(this.renderable.position, target.renderable.position);
 	}
 }
 
-class Mark extends SceneObjectBase {
+class Mark extends SceneObjectImpl implements StaticSceneObject {
+	readonly kind = "static";
 	constructor(
 		readonly id: number,
 		readonly attracting: boolean,

@@ -1,6 +1,6 @@
 import { Viewport } from "pixi-viewport";
 import { Application, type DisplayObject, Sprite } from "pixi.js";
-import type { SceneObject } from "../../game/scene/scene";
+import type { SceneObjectBase } from "../../game/scene/scene";
 import type { World } from "../../game/world";
 import type { MenuRegistry } from "../../ui/menu";
 import type { Disposable } from "../../utils/lifecycle";
@@ -60,7 +60,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			});
 		});
 
-		const tracker = new Map<SceneObject, DisplayObject>();
+		const tracker = new Map<SceneObjectBase, DisplayObject>();
 
 		const viewport = new Viewport({
 			screenWidth: window.innerWidth,

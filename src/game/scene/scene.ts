@@ -17,14 +17,29 @@ export class MetaBase implements Meta {
 	}
 }
 
-export interface SceneObject extends Disposable {
+export interface SceneObjectBase extends Disposable {
 	readonly meta: Meta;
 	readonly renderable: Renderable;
 	onMount?(): void;
 	onDismount?(): void;
 }
 
-export class SceneObjectBase extends DisposableStorage implements SceneObject {
+export interface DynamicSceneObject extends SceneObjectBase {
+	kind: "dynamic";
+	readonly state: "move" | "idle";
+	readonly velocity: number;
+}
+
+export interface StaticSceneObject extends SceneObjectBase {
+	kind: "static";
+}
+
+export type SceneObject = DynamicSceneObject | StaticSceneObject;
+
+export class SceneObjectImpl
+	extends DisposableStorage
+	implements SceneObjectBase
+{
 	readonly meta: Meta;
 
 	constructor(readonly renderable: Renderable) {
@@ -37,11 +52,11 @@ export class SceneObjectBase extends DisposableStorage implements SceneObject {
 }
 
 export interface MountEvent {
-	obj: SceneObject;
+	obj: SceneObjectBase;
 }
 
 export interface DismountEvent {
-	obj: SceneObject;
+	obj: SceneObjectBase;
 }
 
 export interface Scene {
@@ -69,12 +84,19 @@ export class SceneBase implements Scene {
 	private readonly _objs: SceneObject[] = [];
 
 	constructor(private readonly size: Vector2d) {
-		this.indexer = new SceneIndexer(1, this.size);
+		this.indexer = new SceneIndexer(100, this.size);
 	}
 
 	mount(obj: SceneObject): void {
 		obj.onMount?.();
-		// TODO check out of bounds
+		if (
+			obj.renderable.position.x < 0 ||
+			obj.renderable.position.y < 0 ||
+			obj.renderable.position.x > this.size.x ||
+			obj.renderable.position.y > this.size.y
+		) {
+			throw new Error(`Object out of bounds: ${obj.renderable.position}`);
+		}
 		this._objs.push(obj);
 		this.indexer.register(obj);
 		this._onMount.dispatch({ obj: obj });
@@ -89,7 +111,9 @@ export class SceneBase implements Scene {
 	}
 
 	updateBatch(dt: number) {
-		const objs = this._objs;
+		const objs: DynamicSceneObject[] = this._objs.filter(
+			(o) => o.kind === "dynamic",
+		);
 
 		const prevPos: Vector2d[] = [];
 		for (const obj of objs) {
@@ -103,6 +127,14 @@ export class SceneBase implements Scene {
 		let i = 0;
 		for (const obj of objs) {
 			obj.renderable.position = nextPos[i];
+			if (
+				obj.renderable.position.x < 0 ||
+				obj.renderable.position.y < 0 ||
+				obj.renderable.position.x > this.size.x ||
+				obj.renderable.position.y > this.size.y
+			) {
+				throw new Error(`Object out of bounds: ${obj.renderable.position}`);
+			}
 			++i;
 		}
 

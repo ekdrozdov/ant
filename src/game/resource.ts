@@ -1,5 +1,5 @@
 import { type Renderable, RenderableBase } from "../renderer/renderable";
-import { SceneObjectBase } from "./scene/scene";
+import { SceneObjectImpl } from "./scene/scene";
 
 export const RESOURCES = {
 	MATERIAL: "MATERIAL",
@@ -9,7 +9,7 @@ export const RESOURCES = {
 
 export type ResourceTag = (typeof RESOURCES)[keyof typeof RESOURCES];
 
-export class Tree extends SceneObjectBase {
+export class Tree extends SceneObjectImpl {
 	constructor() {
 		super(new RenderableBase({ kind: "tree" }));
 	}
@@ -20,9 +20,10 @@ export interface Resource<T extends ResourceTag> {
 }
 
 export class ResourceBase<T extends ResourceTag>
-	extends SceneObjectBase
+	extends SceneObjectImpl
 	implements Resource<T>
 {
+	kind = "static" as const;
 	constructor(
 		public tag: T,
 		renderable: Renderable,

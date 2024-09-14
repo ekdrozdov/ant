@@ -61,9 +61,12 @@ export class SceneIndexer implements Indexer {
 			}
 		}
 
-		return Array.from(
-			cells.reduce((union, cell) => union.union(cell), new Set()).values(),
-		);
+		let union = new Set<SceneObject>();
+		for (const cell of cells) {
+			union = union.union(cell);
+		}
+
+		return Array.from(union.values());
 	}
 
 	notifyPositionUpdateBatch(objs: SceneObject[], prevPos: Vector2d[]): void {

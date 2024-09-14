@@ -2,41 +2,28 @@ import { AntBase } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
-import type { Renderable, Vector2d } from "./renderer/renderable";
+import type {} from "./renderer/renderable";
 import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 
-const world = new WorldBase({ size: { x: 500, y: 500 } });
+const world = new WorldBase({ size: { x: 10000, y: 10000 } });
 initWorld(world);
 const renderer = new PixiRenderer();
 const menuRegistry = new MenuRegistryBase();
 renderer.render(world, menuRegistry);
 menuRegistry.register(new SpawnerSelector(renderer, world.scene));
 
-for (const _ of Array.from(new Array(1))) {
+for (const _ of Array.from(new Array(5))) {
 	const ant = new AntBase();
 	ant.rotate(Math.random());
 	const scout = new Scout(ant);
+	ant.renderable.position = { x: 5000, y: 5000 };
 	world.scene.mount(ant);
 
-	let i = 0;
 	world.clock.onTick(() => {
 		// Execute agent script.
-		++i % 10 === 0 && scout.execute();
-		// Execute physics.
-		if (ant.state === "move") {
-			getNextPos(ant.renderable, 2, 1);
-			// world.scene.reindex(ant);
-		}
+		scout.execute();
+		world.scene.updateBatch(1);
 	});
-}
-
-function getNextPos(r: Renderable, velocity: number, dt: number): Vector2d {
-	const dx = velocity * dt * Math.cos(r.rotation);
-	const dy = velocity * dt * Math.sin(r.rotation);
-	return {
-		x: r.position.x + dx,
-		y: r.position.y + dy,
-	};
 }
 
 world.clock.setFreq(30);
