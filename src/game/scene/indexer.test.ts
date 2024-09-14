@@ -112,16 +112,98 @@ describe("Indexer", () => {
 			assert.equal(foundObjs.includes(objOutside), false);
 		});
 
-		it("respects indexing step", () => {});
+		it("index is left-inlcuding", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const position: Vector2d = { x: 4, y: center.y };
+			const renderable = new RenderableBase({ position });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
 
-		it("index is left-inlcuding", () => {});
+			const objs = indexer.allInRadius(center, step);
+			assert.equal(objs.includes(obj), true);
+		});
 
-		it("index is right-excluding", () => {});
+		it("index is right-excluding", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const position: Vector2d = { x: 7, y: center.y };
+			const renderable = new RenderableBase({ position });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
+
+			const objs = indexer.allInRadius(center, step);
+			assert.equal(objs.includes(obj), false);
+		});
+
+		it("index is top-including", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const position: Vector2d = { x: center.x, y: 4 };
+			const renderable = new RenderableBase({ position });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
+
+			const objs = indexer.allInRadius(center, step);
+			assert.equal(objs.includes(obj), true);
+		});
+
+		it("index is bottom-excluding", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const position: Vector2d = { x: center.x, y: 7 };
+			const renderable = new RenderableBase({ position });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
+
+			const objs = indexer.allInRadius(center, step);
+			assert.equal(objs.includes(obj), false);
+		});
 	});
 
 	describe("notifyPositionUpdate", () => {
-		it("finds obj when obj stays in radius", () => {});
+		it("finds obj when obj stays in radius", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const initPosition: Vector2d = center;
+			const renderable = new RenderableBase({ position: initPosition });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
 
-		it("not finds obj when obj leaves the radius", () => {});
+			assert.equal(indexer.allInRadius(center, step).includes(obj), true);
+
+			const newPos: Vector2d = {
+				x: initPosition.x + step,
+				y: initPosition.y + step,
+			};
+			obj.renderable.position = newPos;
+			indexer.notifyPositionUpdate(obj, initPosition);
+			assert.equal(indexer.allInRadius(center, step).includes(obj), true);
+		});
+
+		it("not finds obj when obj leaves the radius", () => {
+			const step = 1;
+			const indexer = new SceneIndexer(step, { x: 10, y: 10 });
+			const center: Vector2d = { x: 5.5, y: 5.5 };
+			const initPosition: Vector2d = center;
+			const renderable = new RenderableBase({ position: initPosition });
+			const obj = new SceneObjectBase(renderable);
+			indexer.register(obj);
+
+			assert.equal(indexer.allInRadius(center, step).includes(obj), true);
+
+			const newPos: Vector2d = {
+				x: initPosition.x + step * 2,
+				y: initPosition.y + step * 2,
+			};
+			obj.renderable.position = newPos;
+			indexer.notifyPositionUpdate(obj, initPosition);
+			assert.equal(indexer.allInRadius(center, step).includes(obj), false);
+		});
 	});
 });

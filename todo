@@ -1,16 +1,3 @@
 optimize scene queries: try grid-based scene index
 sometimes scout losing trace, probably because it approaches some sharp turn of a trace too close; try to solve facing the farest of visible marks
-
-ts bug:
-```typescript
-class Foo {
-  bar: new Bar(this)
-  baz: 'initialized-second'
-}
-
-class Bar {
-  constructor(foo: Foo) {
-    console.log(foo.baz, 'is expected to be defined')
-  }
-}
-```
+move event batching
