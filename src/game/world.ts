@@ -17,7 +17,7 @@ export class WorldBase implements World {
 			x: 100,
 			y: 100,
 		};
-		this.scene = new SceneBase();
+		this.scene = new SceneBase(this.size);
 	}
 }
 

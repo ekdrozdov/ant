@@ -1,11 +1,11 @@
 import type { Vector2d } from "../../renderer/renderable";
 import type { SceneObject } from "./scene";
 
-interface Indexer {
+export interface Indexer {
 	allInRadius(center: Vector2d, radius: number): SceneObject[];
 	register(obj: SceneObject): void;
 	unregister(obj: SceneObject): void;
-	notifyPositionUpdate(obj: SceneObject, oldPosition: Vector2d): void;
+	notifyPositionUpdateBatch(objs: SceneObject[], prevPos: Vector2d[]): void;
 }
 
 /**
@@ -66,9 +66,13 @@ export class SceneIndexer implements Indexer {
 		);
 	}
 
-	notifyPositionUpdate(obj: SceneObject, oldPosition: Vector2d): void {
-		this.flattenedCells[this.indexOf(oldPosition)].delete(obj);
-		this.flattenedCells[this.indexOf(obj.renderable.position)].add(obj);
+	notifyPositionUpdateBatch(objs: SceneObject[], prevPos: Vector2d[]): void {
+		let i = 0;
+		for (const obj of objs) {
+			this.flattenedCells[this.indexOf(prevPos[i])].delete(obj);
+			this.flattenedCells[this.indexOf(obj.renderable.position)].add(obj);
+			++i;
+		}
 	}
 
 	private indexOf(v: Vector2d) {

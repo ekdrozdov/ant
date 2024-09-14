@@ -182,7 +182,7 @@ describe("Indexer", () => {
 				y: initPosition.y + step,
 			};
 			obj.renderable.position = newPos;
-			indexer.notifyPositionUpdate(obj, initPosition);
+			indexer.notifyPositionUpdateBatch([obj], [initPosition]);
 			assert.equal(indexer.allInRadius(center, step).includes(obj), true);
 		});
 
@@ -202,7 +202,7 @@ describe("Indexer", () => {
 				y: initPosition.y + step * 2,
 			};
 			obj.renderable.position = newPos;
-			indexer.notifyPositionUpdate(obj, initPosition);
+			indexer.notifyPositionUpdateBatch([obj], [initPosition]);
 			assert.equal(indexer.allInRadius(center, step).includes(obj), false);
 		});
 	});
