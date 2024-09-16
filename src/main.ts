@@ -1,4 +1,4 @@
-import { AntBase } from "./game/agent/agent";
+import { type Agent, AntBase } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
@@ -12,18 +12,27 @@ const menuRegistry = new MenuRegistryBase();
 renderer.render(world, menuRegistry);
 menuRegistry.register(new SpawnerSelector(renderer, world.scene));
 
-for (const _ of Array.from(new Array(1))) {
+const agents: Agent[] = [];
+for (const _ of Array.from(new Array(5))) {
 	const ant = new AntBase();
 	const scout = new Scout(ant);
 	ant.renderable.position = { x: 5000, y: 5000 };
 	world.scene.mount(ant);
-
-	world.clock.onTick(() => {
-		// Execute agent script.
-		scout.execute();
-		world.scene.updateBatch(1);
-	});
+	agents.push(scout);
 }
 
-world.clock.setFreq(30);
+let i = 0;
+// Limit fps with screen frequency rate.
+// To keep 60 fps, loop execution should took no longer than 16.6 milliseconds.
+world.clock.onTick(() => {
+	if (i % 5 === 0) {
+		for (const agent of agents) {
+			agent.execute();
+		}
+	}
+	world.scene.updateBatch(1);
+	++i;
+});
+
+world.clock.setFreq(60);
 world.clock.resume();
