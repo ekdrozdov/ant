@@ -19,11 +19,15 @@ export class PixiRenderer extends RendererBase implements Renderer {
 	private session?: Disposable;
 	constructor() {
 		super();
+		const canvas = document.getElementById("canvas");
+		if (!canvas) {
+			throw new Error("Missin canvas");
+		}
 		this._app = new Application({
 			background: "#1099bb",
 			resizeTo: window,
 		});
-		document.body.appendChild(this._app.view as unknown as Node);
+		canvas.appendChild(this._app.view as unknown as Node);
 	}
 	render(world: World, registry: MenuRegistry): void {
 		this.session?.dispose();
@@ -75,6 +79,9 @@ export class PixiRenderer extends RendererBase implements Renderer {
 		viewport.addListener("clicked", (e) => {
 			this._onClick.dispatch({ position: e.world });
 		});
+		const center = { x: world.size.x / 2, y: world.size.y / 2 };
+		viewport.fit(true, center.x, center.y);
+		viewport.moveCenter(center.x, center.y);
 
 		world.scene.onMount(({ obj }) => {
 			if (!obj.renderable.kind) throw new Error("Object kind is undefined");

@@ -1,0 +1,20 @@
+:root {
+  /* Credits: Davis Humphries design's cozy color palette. */
+  --dark-accent-color: #223030;
+  --dark-shade-color: #523d35;
+  --dark-base-color: #959d90;
+  --light-accent-color: #efefe9;
+  --light-shade-color: #e8d9cd;
+  --light-base-color: #bba58f;
+}
+
+html, body {
+  margin: 0;
+  background-color: var(--dark-shade-color);
+  overflow: hidden;
+}
+
+#canvas {
+  object-fit: cover;
+  background-color: pink;
+}
