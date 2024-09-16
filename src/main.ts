@@ -12,9 +12,8 @@ const menuRegistry = new MenuRegistryBase();
 renderer.render(world, menuRegistry);
 menuRegistry.register(new SpawnerSelector(renderer, world.scene));
 
-for (const _ of Array.from(new Array(5))) {
+for (const _ of Array.from(new Array(1))) {
 	const ant = new AntBase();
-	ant.rotate(Math.random());
 	const scout = new Scout(ant);
 	ant.renderable.position = { x: 5000, y: 5000 };
 	world.scene.mount(ant);

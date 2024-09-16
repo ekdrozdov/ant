@@ -12,7 +12,8 @@ export class Scout implements Agent {
 	}
 	private scan() {
 		this.ant.mark();
-		Math.random() < 0.1 && this.ant.rotate(NOISE_ROTATION);
+		Math.random() < 0.1 &&
+			this.ant.rotate(Math.sign(Math.random() - 0.5) * NOISE_ROTATION);
 		this.ant.move();
 		const food = this.ant.getVisibleObjects().filter(isFood);
 		if (food.length > 0) {

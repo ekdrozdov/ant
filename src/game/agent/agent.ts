@@ -23,7 +23,11 @@ export interface Ant {
 	fuel: number;
 	mark(attracting?: boolean): void;
 	move(): void;
-	rotate(angle: number): void;
+	/**
+	 * Rotate unit clockwise.
+	 * @param radians amount of rotation.
+	 */
+	rotate(radians: number): void;
 	face(position: Vector2d): void;
 	stop(): void;
 	refuel(): void;
@@ -66,8 +70,8 @@ export class AntBase
 	move(): void {
 		this.state = "move";
 	}
-	rotate(rotation: number): void {
-		let normalizedRotation = rotation % PI_2;
+	rotate(radians: number): void {
+		let normalizedRotation = radians % PI_2;
 		if (normalizedRotation < 0) {
 			normalizedRotation = PI_2 + normalizedRotation;
 		}
