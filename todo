@@ -1,3 +1,5 @@
 optimize scene queries: try grid-based scene index
 sometimes scout losing trace, probably because it approaches some sharp turn of a trace too close; try to solve facing the farest of visible marks
 move event batching
+
+check out pixi-ui and pixi-layout
