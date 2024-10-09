@@ -5,6 +5,10 @@ scene serialization
 
 in-game ui
   framework
+    pixilayout/pixiui
+      apply adaptive resizing
+      add Screen feature, add GameScreen
+      add Window feature, add TimeWindow
   time control panel
   world editing
     spawn mode
@@ -14,3 +18,6 @@ in-game ui
 world map generation
   topography
   resources
+
+ideas
+  artstyle: school-notebook-pencil-sketch with stop-motion animations
