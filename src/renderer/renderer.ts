@@ -12,7 +12,8 @@ export interface RendererEvents {
 }
 
 export interface Renderer extends RendererEvents {
-	render(world: World, registry: MenuRegistry): void;
+	init(): Promise<void>;
+	watchAndRender(world: World, registry: MenuRegistry): void;
 }
 
 export class RendererBase {

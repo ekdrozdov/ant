@@ -1,12 +1,12 @@
 import { Viewport } from "pixi-viewport";
-import { Application, type DisplayObject, Sprite } from "pixi.js";
+import { Application, Assets, type Renderable, Sprite } from "pixi.js";
 import type { SceneObjectBase } from "../../game/scene/scene";
 import type { World } from "../../game/world";
 import type { MenuRegistry } from "../../ui/menu";
 import type { Disposable } from "../../utils/lifecycle";
 import { type Renderer, RendererBase } from "../renderer";
 
-const kindToSprite = {
+const kindToAssetUrl = {
 	mark: "http://localhost:5173/assets/mark.png",
 	bunny: "http://localhost:5173/assets/bunny.png",
 	tree: "http://localhost:5173/assets/tree.png",
@@ -17,19 +17,27 @@ const kindToSprite = {
 export class PixiRenderer extends RendererBase implements Renderer {
 	private readonly _app: Application;
 	private session?: Disposable;
+	private initialized = false;
 	constructor() {
 		super();
+		this._app = new Application();
+	}
+	async init(): Promise<void> {
 		const canvas = document.getElementById("canvas");
 		if (!canvas) {
 			throw new Error("Missin canvas");
 		}
-		this._app = new Application({
+		await this._app.init({
 			background: "#1099bb",
 			resizeTo: window,
 		});
-		canvas.appendChild(this._app.view as unknown as Node);
+		canvas.appendChild(this._app.canvas as unknown as Node);
+		this.initialized = true;
 	}
-	render(world: World, registry: MenuRegistry): void {
+	watchAndRender(world: World, registry: MenuRegistry): void {
+		if (!this.initialized) {
+			throw new Error("Renderer is not initialized");
+		}
 		this.session?.dispose();
 
 		const uiListener = registry.onRegistered((e) => {
@@ -64,7 +72,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			});
 		});
 
-		const tracker = new Map<SceneObjectBase, DisplayObject>();
+		const tracker = new Map<SceneObjectBase, Renderable>();
 
 		const viewport = new Viewport({
 			screenWidth: window.innerWidth,
@@ -73,7 +81,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			worldHeight: world.size.y,
 			events: this._app.renderer.events,
 		});
-		this._app.stage.addChild(viewport as DisplayObject);
+		this._app.stage.addChild(viewport);
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {
@@ -83,12 +91,14 @@ export class PixiRenderer extends RendererBase implements Renderer {
 		viewport.fit(true, center.x, center.y);
 		viewport.moveCenter(center.x, center.y);
 
-		world.scene.onMount(({ obj }) => {
+		world.scene.onMount(async ({ obj }) => {
 			if (!obj.renderable.kind) throw new Error("Object kind is undefined");
-			const sprite = Sprite.from(kindToSprite[obj.renderable.kind]);
+			const sprite = Sprite.from(
+				await Assets.load({ src: kindToAssetUrl[obj.renderable.kind] }),
+			);
 			sprite.anchor.set(0.5);
-			viewport.addChild(sprite as DisplayObject);
-			tracker.set(obj, sprite as DisplayObject);
+			viewport.addChild(sprite);
+			tracker.set(obj, sprite);
 		});
 		world.scene.onDismount(({ obj }) => {
 			const sprite = tracker.get(obj);
@@ -115,16 +125,9 @@ export class PixiRenderer extends RendererBase implements Renderer {
 		this.session = {
 			dispose: () => {
 				this._app.ticker.remove(renderFrame);
-				this._app.stage.removeChild(viewport as DisplayObject);
+				this._app.stage.removeChild(viewport);
 				uiListener.dispose();
 			},
 		};
 	}
 }
-
-// const basicText = new PIXI.Text()
-// basicText.x = 50
-// basicText.y = 100
-// app.stage.addChild(basicText)
-
-// toPixiDisplayObject()
