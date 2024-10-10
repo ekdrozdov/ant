@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@pixi/layout':
+        specifier: ^2.0.1
+        version: 2.0.1(pixi.js@8.4.1)
+      '@pixi/ui':
+        specifier: ^2.1.5
+        version: 2.1.5(pixi.js@8.4.1)
+      gsap:
+        specifier: ^3.12.5
+        version: 3.12.5
       pixi-viewport:
         specifier: ^5.0.3
         version: 5.0.3
@@ -97,6 +106,16 @@ packages:
 
   '@pixi/colord@2.9.6':
     resolution: {integrity: sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA==}
+
+  '@pixi/layout@2.0.1':
+    resolution: {integrity: sha512-xQj/w44FKLaRn71iEQACxRTYgEVU4c8SXTJKcSIDm/uXgKm3JKRylEOpQ9u6x3gWIFeV5d3gx/oHBJHdZhqAoQ==}
+    peerDependencies:
+      pixi.js: ^8.0.4
+
+  '@pixi/ui@2.1.5':
+    resolution: {integrity: sha512-hdraQYreymjYjWiUu/L4uQIl6VaPcREyvjB64mZpTB44SQ0WmcpiZtw4HyGvM48JRMlkQb12CiFyvxFKI8uC1Q==}
+    peerDependencies:
+      pixi.js: ^8.0.2
 
   '@types/css-font-loading-module@0.0.12':
     resolution: {integrity: sha512-x2tZZYkSxXqWvTDgveSynfjq/T2HyiZHXb00j/+gy19yp70PHCizM48XFdjBCWH7eHBD0R5i/pw9yMBP/BH5uA==}
@@ -250,6 +269,9 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
+  gsap@3.12.5:
+    resolution: {integrity: sha512-srBfnk4n+Oe/ZnMIOXt3gT605BX9x5+rh/prT2F1SsNJsU1XuMiP0E2aptW481OnonOGACZWBqseH5Z7csHxhQ==}
+
   has@1.0.4:
     resolution: {integrity: sha512-qdSAmqLF6209RFj4VVItywPMbm3vWylknmB3nvNiUIs72xAimcM8nVYxYr7ncvZq5qzk9MKIZR8ijqD/1QuYjQ==}
     engines: {node: '>= 0.4.0'}
@@ -300,6 +322,12 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  tweedle.js@2.1.0:
+    resolution: {integrity: sha512-0ReQgVjepoZkE6t0upWNgCRbplHkQJQYk1LStXugwSR728GLFmGDRuaQJlxeC/iBlxud6+P1RdODjaO25vHAqw==}
+
+  typed-signals@2.5.0:
+    resolution: {integrity: sha512-m9lHc3eBCJerXYdx+G0uWZihyUXdqTzzgOdqiDDsoUo75WjhFJH6vP5/6w/xhyu04zoxHUqgYhf9FEt85dk/Ng==}
 
   typescript@5.6.2:
     resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
@@ -375,6 +403,16 @@ snapshots:
     optional: true
 
   '@pixi/colord@2.9.6': {}
+
+  '@pixi/layout@2.0.1(pixi.js@8.4.1)':
+    dependencies:
+      pixi.js: 8.4.1
+
+  '@pixi/ui@2.1.5(pixi.js@8.4.1)':
+    dependencies:
+      pixi.js: 8.4.1
+      tweedle.js: 2.1.0
+      typed-signals: 2.5.0
 
   '@types/css-font-loading-module@0.0.12': {}
 
@@ -478,6 +516,8 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
+  gsap@3.12.5: {}
+
   has@1.0.4: {}
 
   is-core-module@2.13.0:
@@ -527,6 +567,10 @@ snapshots:
   source-map-js@1.0.2: {}
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  tweedle.js@2.1.0: {}
+
+  typed-signals@2.5.0: {}
 
   typescript@5.6.2: {}
 

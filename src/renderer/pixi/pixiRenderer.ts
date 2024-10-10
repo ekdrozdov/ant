@@ -5,6 +5,7 @@ import type { World } from "../../game/world";
 import type { MenuRegistry } from "../../ui/menu";
 import type { Disposable } from "../../utils/lifecycle";
 import { type Renderer, RendererBase } from "../renderer";
+import type { AppScreen } from "./ui/AppScreen";
 
 const kindToAssetUrl = {
 	mark: "http://localhost:5173/assets/mark.png",
@@ -14,26 +15,80 @@ const kindToAssetUrl = {
 	"tree-source": "http://localhost:5173/assets/tree-source.png",
 } as const;
 
+const app = new Application();
+
+class Ui {
+	private currentScreen?: AppScreen;
+
+	private lastW = 0;
+	private lastH = 0;
+
+	public async showScreen(screen: AppScreen) {
+		// Remove prev screen.
+		const prevScreen = this.currentScreen;
+		if (prevScreen) {
+			await prevScreen.hide();
+
+			app.ticker.remove(prevScreen.onUpdate, prevScreen);
+
+			if (prevScreen.parent) {
+				prevScreen.parent.removeChild(prevScreen);
+			}
+			prevScreen.destroy();
+		}
+
+		app.stage.addChild(screen);
+		screen.resize(this.lastW, this.lastH);
+		app.ticker.add(screen.onUpdate, screen);
+		await screen.show();
+
+		this.currentScreen = screen;
+	}
+
+	public resize(w: number, h: number) {
+		this.lastW = w;
+		this.lastH = h;
+		this.currentScreen?.resize?.(w, h);
+	}
+}
+
+const ui = new Ui();
+
+function resize() {
+	const windowWidth = window.innerWidth;
+	const windowHeight = window.innerHeight;
+
+	// Update canvas style dimensions and scroll window up to avoid issues on mobile resize
+	app.renderer.canvas.style.width = `${windowWidth}px`;
+	app.renderer.canvas.style.height = `${windowHeight}px`;
+	window.scrollTo(0, 0);
+
+	app.renderer.resize(windowWidth, windowHeight);
+	ui.resize(windowWidth, windowHeight);
+}
+
 export class PixiRenderer extends RendererBase implements Renderer {
-	private readonly _app: Application;
 	private session?: Disposable;
 	private initialized = false;
-	constructor() {
-		super();
-		this._app = new Application();
-	}
+
 	async init(): Promise<void> {
+		await app.init({
+			resolution: Math.max(window.devicePixelRatio, 2),
+			background: "#1099bb",
+		});
+
 		const canvas = document.getElementById("canvas");
 		if (!canvas) {
 			throw new Error("Missin canvas");
 		}
-		await this._app.init({
-			background: "#1099bb",
-			resizeTo: window,
-		});
-		canvas.appendChild(this._app.canvas as unknown as Node);
+		canvas.appendChild(app.canvas);
+
+		window.addEventListener("resize", resize);
+		resize();
+
 		this.initialized = true;
 	}
+
 	watchAndRender(world: World, registry: MenuRegistry): void {
 		if (!this.initialized) {
 			throw new Error("Renderer is not initialized");
@@ -79,9 +134,9 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			screenHeight: window.innerHeight,
 			worldWidth: world.size.x,
 			worldHeight: world.size.y,
-			events: this._app.renderer.events,
+			events: app.renderer.events,
 		});
-		this._app.stage.addChild(viewport);
+		app.stage.addChild(viewport);
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {
@@ -120,12 +175,12 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			}
 		};
 
-		this._app.ticker.add(renderFrame);
+		app.ticker.add(renderFrame);
 
 		this.session = {
 			dispose: () => {
-				this._app.ticker.remove(renderFrame);
-				this._app.stage.removeChild(viewport);
+				app.ticker.remove(renderFrame);
+				app.stage.removeChild(viewport);
 				uiListener.dispose();
 			},
 		};
