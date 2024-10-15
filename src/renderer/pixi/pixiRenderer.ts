@@ -6,6 +6,7 @@ import type { MenuRegistry } from "../../ui/menu";
 import type { Disposable } from "../../utils/lifecycle";
 import { type Renderer, RendererBase } from "../renderer";
 import type { AppScreen } from "./ui/AppScreen";
+import { GameScreen } from "./ui/GameScreen";
 
 const kindToAssetUrl = {
 	mark: "http://localhost:5173/assets/mark.png",
@@ -36,7 +37,7 @@ class Ui {
 			}
 			prevScreen.destroy();
 		}
-
+		await screen.init()
 		app.stage.addChild(screen);
 		screen.resize(this.lastW, this.lastH);
 		app.ticker.add(screen.onUpdate, screen);
@@ -95,6 +96,9 @@ export class PixiRenderer extends RendererBase implements Renderer {
 		}
 		this.session?.dispose();
 
+		const gameScreen = new GameScreen();
+		ui.showScreen(gameScreen);
+
 		const uiListener = registry.onRegistered((e) => {
 			e.focus();
 			console.log(`selector: ${JSON.stringify(e.items)}`);
@@ -136,7 +140,7 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			worldHeight: world.size.y,
 			events: app.renderer.events,
 		});
-		app.stage.addChild(viewport);
+		gameScreen.addChild(viewport);
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {
