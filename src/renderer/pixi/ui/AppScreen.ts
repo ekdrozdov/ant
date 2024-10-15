@@ -20,6 +20,8 @@ export class AppScreen extends Layout {
 		});
 	}
 
+	public async init(): Promise<void> {}
+
 	/** Method is automatically called on every update. See Game.ts */
 	public onUpdate(_ticker: Ticker) {
 		/* Override this method to update the screen */
