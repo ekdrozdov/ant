@@ -6,6 +6,7 @@
     "compile:watch": "tsc --watch --noEmit"
   },
   "dependencies": {
+    "@pixi/graphics": "^7.4.2",
     "@pixi/layout": "^2.0.1",
     "@pixi/ui": "^2.1.5",
     "gsap": "^3.12.5",
