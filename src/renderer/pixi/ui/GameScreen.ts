@@ -1,6 +1,14 @@
 import {} from "@pixi/layout";
 import { FancyButton } from "@pixi/ui";
+import {
+	DOUBLE_SPEED_ACTION_ID,
+	HALF_SPEED_ACTION_ID,
+	PAUSE_ACTION_ID,
+	RESUME_ACTION_ID,
+	actionRegistry,
+} from "../../../controller/actions";
 import { AppScreen } from "./AppScreen";
+import { TextButton } from "./pixi-ui-wrappers/Button";
 
 // Game overlay:
 // addContent(timePanel)
@@ -15,37 +23,54 @@ export class GameScreen extends AppScreen {
 		super("GameScreen");
 	}
 
-	public override async init(): Promise<void> {
+	public override async init(): Promise<void> {}
+
+	showOverlay() {
+		const pauseButton = new TextButton({
+			text: "pause",
+		});
+		pauseButton.onPress.connect(() => {
+			actionRegistry.execute(PAUSE_ACTION_ID);
+		});
+		const resumeButton = new TextButton({
+			text: "resume",
+		});
+		resumeButton.onPress.connect(() => {
+			actionRegistry.execute(RESUME_ACTION_ID);
+		});
+		const halfSpeedButton = new TextButton({
+			text: "-",
+		});
+		halfSpeedButton.onPress.connect(()=> {
+			actionRegistry.execute(HALF_SPEED_ACTION_ID)
+		})
+		const doubleSpeedButton = new TextButton({
+			text: "+",
+		});
+		doubleSpeedButton.onPress.connect(() => {
+			actionRegistry.execute(DOUBLE_SPEED_ACTION_ID);
+		});
 		// Top panel overlay.
 		this.addContent({
 			content: {
 				pause: {
-					content: new FancyButton({
-						text: "pause",
-						defaultTextAnchor: { x: 0, y: 0 },
-					}),
+					content: pauseButton,
 					styles: {
 						background: "brown",
 						marginLeft: 10,
 						marginRight: 10,
 					},
 				},
-				play: {
-					content: new FancyButton({
-						text: "play",
-						defaultTextAnchor: { x: 0, y: 0 },
-					}),
+				resume: {
+					content: resumeButton,
 					styles: {
 						background: "brown",
 						marginLeft: 10,
 						marginRight: 10,
 					},
 				},
-				decSpeed: {
-					content: new FancyButton({
-						text: "-",
-						defaultTextAnchor: { x: 0, y: 0 },
-					}),
+				halfSpeed: {
+					content: halfSpeedButton,
 					styles: {
 						background: "brown",
 						marginLeft: 10,
@@ -53,11 +78,8 @@ export class GameScreen extends AppScreen {
 						width: 30,
 					},
 				},
-				incSpeed: {
-					content: new FancyButton({
-						text: "+",
-						defaultTextAnchor: { x: 0, y: 0 },
-					}),
+				doubleSpeed: {
+					content: doubleSpeedButton,
 					styles: {
 						background: "brown",
 						marginLeft: 10,
@@ -79,9 +101,8 @@ export class GameScreen extends AppScreen {
 		this.addContent({
 			content: {
 				spawn: {
-					content: new FancyButton({
+					content: new TextButton({
 						text: "spawn",
-						defaultTextAnchor: { x: 0, y: 0 },
 					}),
 					styles: {
 						background: "brown",
@@ -90,9 +111,8 @@ export class GameScreen extends AppScreen {
 					},
 				},
 				remove: {
-					content: new FancyButton({
+					content: new TextButton({
 						text: "remove",
-						defaultTextAnchor: { x: 0, y: 0 },
 					}),
 					styles: {
 						background: "brown",
@@ -114,7 +134,7 @@ export class GameScreen extends AppScreen {
 		this.addContent({
 			content: {
 				prev: {
-					content: new FancyButton({
+					content: new TextButton({
 						text: "<",
 						defaultTextAnchor: { x: 0, y: 0 },
 					}),
@@ -126,9 +146,8 @@ export class GameScreen extends AppScreen {
 					},
 				},
 				selected: {
-					content: new FancyButton({
+					content: new TextButton({
 						text: "selected",
-						defaultTextAnchor: { x: 0, y: 0 },
 					}),
 					styles: {
 						background: "brown",
@@ -138,9 +157,8 @@ export class GameScreen extends AppScreen {
 					},
 				},
 				next: {
-					content: new FancyButton({
+					content: new TextButton({
 						text: ">",
-						defaultTextAnchor: { x: 0, y: 0 },
 					}),
 					styles: {
 						background: "brown",

@@ -37,7 +37,7 @@ class Ui {
 			}
 			prevScreen.destroy();
 		}
-		await screen.init()
+		await screen.init();
 		app.stage.addChild(screen);
 		screen.resize(this.lastW, this.lastH);
 		app.ticker.add(screen.onUpdate, screen);
@@ -140,7 +140,8 @@ export class PixiRenderer extends RendererBase implements Renderer {
 			worldHeight: world.size.y,
 			events: app.renderer.events,
 		});
-		gameScreen.addChild(viewport);
+		gameScreen.addContent(viewport);
+		gameScreen.showOverlay();
 		viewport.drag().pinch().wheel().decelerate();
 
 		viewport.addListener("clicked", (e) => {
