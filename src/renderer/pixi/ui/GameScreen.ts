@@ -1,5 +1,5 @@
 import {} from "@pixi/layout";
-import { FancyButton, Input } from "@pixi/ui";
+import { FancyButton } from "@pixi/ui";
 import { AppScreen } from "./AppScreen";
 
 // Game overlay:
@@ -41,17 +41,28 @@ export class GameScreen extends AppScreen {
 						marginRight: 10,
 					},
 				},
-				freq: {
-					content: new Input({
-						placeholder: "freq",
-						bg: "white",
-						// defaultTextAnchor: { x: 0, y: 0 },
+				decSpeed: {
+					content: new FancyButton({
+						text: "-",
+						defaultTextAnchor: { x: 0, y: 0 },
 					}),
-					value: "1",
 					styles: {
 						background: "brown",
 						marginLeft: 10,
 						marginRight: 10,
+						width: 30,
+					},
+				},
+				incSpeed: {
+					content: new FancyButton({
+						text: "+",
+						defaultTextAnchor: { x: 0, y: 0 },
+					}),
+					styles: {
+						background: "brown",
+						marginLeft: 10,
+						marginRight: 10,
+						width: 30,
 					},
 				},
 			},
@@ -102,15 +113,40 @@ export class GameScreen extends AppScreen {
 		// Bottom panel overlay.
 		this.addContent({
 			content: {
-				pause: {
+				prev: {
 					content: new FancyButton({
-						text: "pause",
+						text: "<",
 						defaultTextAnchor: { x: 0, y: 0 },
 					}),
 					styles: {
 						background: "brown",
 						marginLeft: 10,
 						marginRight: 10,
+						width: 30,
+					},
+				},
+				selected: {
+					content: new FancyButton({
+						text: "selected",
+						defaultTextAnchor: { x: 0, y: 0 },
+					}),
+					styles: {
+						background: "brown",
+						marginLeft: 10,
+						marginRight: 10,
+						width: 30,
+					},
+				},
+				next: {
+					content: new FancyButton({
+						text: ">",
+						defaultTextAnchor: { x: 0, y: 0 },
+					}),
+					styles: {
+						background: "brown",
+						marginLeft: 10,
+						marginRight: 10,
+						width: 30,
 					},
 				},
 			},
