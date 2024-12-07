@@ -14,6 +14,7 @@ const kindToAssetUrl = {
 	tree: "http://localhost:5173/assets/tree.png",
 	"animal-source": "http://localhost:5173/assets/animal-source.png",
 	"tree-source": "http://localhost:5173/assets/tree-source.png",
+	chamber: "http://localhost:5173/assets/animal-source.png",
 } as const;
 
 const app = new Application();

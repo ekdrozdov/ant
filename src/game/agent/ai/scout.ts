@@ -1,14 +1,15 @@
 import { type Agent, type Ant, NOISE_ROTATION, isFood, isMark } from "../agent";
 
 import { PI } from "../../../utils/math";
+import { isBuilding } from "../../buildings";
 import type { Food } from "../../resource";
 
 export class Scout implements Agent {
-	private traceTarget: "trace" | "restart" | "backtrace" = "trace";
+	private patrolTarget: "food" | "home" = "food";
 	execute: () => void;
 	constructor(private readonly ant: Ant) {
 		console.debug(`${this.ant.id} executing scan`);
-		this.execute = this.scan;
+		this.execute = this.goHome;
 	}
 	private scan() {
 		this.ant.mark();
@@ -31,15 +32,15 @@ export class Scout implements Agent {
 				distance = newDistance;
 			} else {
 				this.ant.rotate(Math.PI);
-				this.traceTarget = "backtrace";
-				console.debug(`${this.ant.id} executing backtrace`);
-				this.execute = this.trace;
+				this.patrolTarget = "home";
+				console.debug(`${this.ant.id} executing patrol`);
+				this.execute = this.patrol;
 			}
 		};
 	}
-	private trace() {
+	private patrol() {
 		this.ant.move();
-		if (this.traceTarget === "backtrace") {
+		if (this.patrolTarget === "home") {
 			this.ant.mark(true);
 		}
 		const mark = this.ant
@@ -47,35 +48,46 @@ export class Scout implements Agent {
 			.filter(isMark)
 			.find((mark) => mark.id === this.ant.id);
 		if (!mark) {
-			switch (this.traceTarget) {
-				case "trace":
+			switch (this.patrolTarget) {
+				case "food":
 					if (this.ant.getVisibleObjects().find(isFood) === undefined) {
-						this.ant.rotate(PI);
-						console.debug(`${this.ant.id} executing restart`);
-						this.traceTarget = "restart";
+						console.debug(`${this.ant.id} lost food, executing goHome`);
+						this.execute = this.goHome;
 						return;
 					}
 					this.ant.rotate(PI);
-					console.debug(`${this.ant.id} executing backtrace`);
-					this.traceTarget = "backtrace";
+					this.patrolTarget = "home";
+					console.debug(
+						`${this.ant.id} executing patrol to home`,
+					);
 					return;
-				case "backtrace":
+				case "home":
 					this.ant.rotate(PI);
-					console.debug(`${this.ant.id} executing trace`);
-					this.traceTarget = "trace";
-					return;
-				case "restart":
-					this.execute = this.scan;
+					this.patrolTarget = "food";
+					console.debug(
+						`${this.ant.id} executing patrol to food`,
+					);
 					return;
 				default: {
-					const e: never = this.traceTarget;
+					const e: never = this.patrolTarget;
 					throw new Error(`Unknown switch key ${e}`);
 				}
 			}
 		}
 		this.ant.face(mark.renderable.position);
 	}
+	private goHome() {
+		this.ant.mark();
+		Math.random() < 0.1 &&
+			this.ant.rotate(Math.sign(Math.random() - 0.5) * NOISE_ROTATION);
+		this.ant.move();
+		const home = this.ant
+			.getVisibleObjects()
+			.filter(isBuilding)
+			.find((b) => b === this.ant.home);
+		// Home found -> restart working loop.
+		if (home) {
+			this.execute = this.scan;
+		}
+	}
 }
-
-// interface Fsa { execute }
-// class FsaBase { registerState }

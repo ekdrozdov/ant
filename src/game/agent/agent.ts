@@ -4,6 +4,7 @@ import {
 	type Vector2d,
 } from "../../renderer/renderable";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
+import type { Building } from "../buildings";
 import { Food } from "../resource";
 import {
 	type DynamicSceneObject,
@@ -37,12 +38,13 @@ class AgentRegistry {
 	}
 }
 
-export const agentRegistry = new AgentRegistry()
+export const agentRegistry = new AgentRegistry();
 
 export interface Ant {
 	readonly id: number;
 	state: "move" | "idle";
 	fuel: number;
+	readonly home: Building;
 	mark(attracting?: boolean): void;
 	move(): void;
 	/**
@@ -75,19 +77,21 @@ export class AntBase
 	private readonly visionDistance = 100;
 	protected readonly world: World;
 	public readonly id: number = getId();
-	constructor() {
+	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
 		this.world = getWorld();
 	}
+	private markSpacer = 0;
 	mark(attracting = false): void {
-		this.world.scene.mount(
-			new Mark(this.id, attracting, {
-				kind: "mark",
-				position: { ...this.renderable.position },
-				state: "default",
-				rotation: 0,
-			}),
-		);
+		this.markSpacer++ % 4 === 0 &&
+			this.world.scene.mount(
+				new Mark(this.id, attracting, {
+					kind: "mark",
+					position: { ...this.renderable.position },
+					state: "default",
+					rotation: 0,
+				}),
+			);
 	}
 	move(): void {
 		this.state = "move";

@@ -10,7 +10,8 @@ export type RenderableKind =
 	| "tree"
 	| "tree-source"
 	| "animal-source"
-	| "mark";
+	| "mark"
+	| "chamber";
 
 /**
  * Contains a data to render an entity. This data will be synced with actual renderer every frame.

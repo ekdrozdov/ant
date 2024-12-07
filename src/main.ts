@@ -1,5 +1,6 @@
 import { AntBase, agentRegistry } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
+import { LivingChamber } from "./game/buildings";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
 import type {} from "./renderer/renderable";
@@ -14,8 +15,12 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	renderer.watchAndRender(world, menuRegistry);
 	menuRegistry.register(new SpawnerSelector(renderer, world.scene));
 
-	for (const _ of Array.from(new Array(5))) {
-		const ant = new AntBase();
+	const chamber = new LivingChamber();
+	chamber.renderable.position = { x: 5010, y: 5010 };
+	world.scene.mount(chamber)
+
+	for (const _ of Array.from(new Array(1))) {
+		const ant = new AntBase(chamber);
 		const scout = new Scout(ant);
 		ant.renderable.position = { x: 5000, y: 5000 };
 		world.scene.mount(ant);
@@ -36,5 +41,5 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	});
 
 	world.clock.setFreq(60);
-	world.clock.resume();
+	// world.clock.resume();
 })();
