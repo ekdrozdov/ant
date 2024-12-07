@@ -59,10 +59,12 @@ export class GameClockBase implements GameClock {
 	}
 	setFreq(value: number): void {
 		const update = () => {
-			this._isRunning && this._onTick.dispatch();
+			if (!this._isRunning) return;
+			this._onTick.dispatch();
 
 			this.minutes = ++this.minutes % 60;
 			if (this.minutes !== 0) return;
+			this._onMinute.dispatch();
 			this.hours = ++this.hours % 24;
 			if (this.hours !== 0) {
 				this._onHour.dispatch();

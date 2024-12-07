@@ -3,6 +3,7 @@ import {
 	RenderableBase,
 	type Vector2d,
 } from "../../renderer/renderable";
+import { EventEmitter } from "../../utils/events";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import type { Building } from "../buildings";
 import { Food } from "../resource";
@@ -65,6 +66,25 @@ function getId() {
 	return id++;
 }
 
+class Corpse extends SceneObjectImpl implements StaticSceneObject {
+	kind = "static" as const;
+	private readonly _onDecomposed = new EventEmitter<void>();
+	readonly onDecomposed = this._onDecomposed.event;
+	private remains = 20;
+	constructor() {
+		super(new RenderableBase({ kind: "corpse" }));
+		this.register(
+			getWorld().clock.onMinute(() => {
+				this.remains -= 10;
+				console.debug(`flesh remains: ${this.remains}`)
+				if (this.remains <= 0) {
+					this._onDecomposed.dispatch();
+				}
+			}),
+		);
+	}
+}
+
 export class AntBase
 	extends SceneObjectImpl
 	implements Ant, DynamicSceneObject
@@ -74,16 +94,31 @@ export class AntBase
 	fuel = 100;
 	velocity = 1;
 	private readonly visibilityHalfAngle = Math.PI / 2;
-	private readonly visionDistance = 100;
+	private readonly visionDistance = 20;
 	protected readonly world: World;
 	public readonly id: number = getId();
+	private readonly _onDead = new EventEmitter<void>();
+	readonly onDead = this._onDead.event;
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
 		this.world = getWorld();
+		this.register(
+			this.world.clock.onMinute(() => {
+				this.fuel -= 10;
+				console.debug(`${this.id} fuel ${this.fuel}`)
+				if (this.fuel <= 0) {
+					const corpse = new Corpse();
+					corpse.renderable.position = this.renderable.position;
+					this.world.scene.mount(corpse);
+					corpse.onDecomposed(() => this.world.scene.dismount(corpse));
+					this._onDead.dispatch();
+				}
+			}),
+		);
 	}
-	private markSpacer = 0;
+	private markCounter = 0;
 	mark(attracting = false): void {
-		this.markSpacer++ % 4 === 0 &&
+		this.markCounter++ % 4 === 0 &&
 			this.world.scene.mount(
 				new Mark(this.id, attracting, {
 					kind: "mark",

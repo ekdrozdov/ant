@@ -17,7 +17,7 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 
 	const chamber = new LivingChamber();
 	chamber.renderable.position = { x: 5010, y: 5010 };
-	world.scene.mount(chamber)
+	world.scene.mount(chamber);
 
 	for (const _ of Array.from(new Array(1))) {
 		const ant = new AntBase(chamber);
@@ -25,6 +25,10 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 		ant.renderable.position = { x: 5000, y: 5000 };
 		world.scene.mount(ant);
 		agentRegistry.register(scout);
+		ant.onDead(() => {
+			agentRegistry.unregister(scout);
+			world.scene.dismount(ant);
+		});
 	}
 
 	let i = 0;

@@ -2,7 +2,7 @@ import type { Renderable, Vector2d } from "../../renderer/renderable";
 import { type Event, EventEmitter } from "../../utils/events";
 import { type Disposable, DisposableStorage } from "../../utils/lifecycle";
 import { distance } from "../../utils/math";
-import { getNextPosition as getNextPositionBatch } from "../physics/movement";
+import { getNextPositionBatch } from "../physics/movement";
 import { type Indexer, SceneIndexer } from "./indexer";
 
 export interface Meta {

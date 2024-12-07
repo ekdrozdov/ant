@@ -1,7 +1,7 @@
 import type { Vector2d } from "../../renderer/renderable";
 import type { DynamicSceneObject } from "../scene/scene";
 
-export function getNextPosition(
+export function getNextPositionBatch(
 	objs: DynamicSceneObject[],
 	dt: number,
 ): Vector2d[] {
