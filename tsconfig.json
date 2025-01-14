@@ -27,9 +27,4 @@
     "src/**/*.d.ts",
     "src/**/*.tsx"
   ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
 }

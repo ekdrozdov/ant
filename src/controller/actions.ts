@@ -1,5 +1,6 @@
 import { agentRegistry } from "../game/agent/agent";
 import { Scout } from "../game/agent/ai/scout";
+import { LivingChamber } from "../game/buildings";
 import { AntBase } from "../game/scene/object/ant";
 import type { Scene } from "../game/scene/scene";
 import { getWorld } from "../game/world";
@@ -45,6 +46,7 @@ const spawnContext: {
 	event: { id: "sceneClick", position: { x: 0, y: 0 } },
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: add to registry when finished.
 class Spawn implements Action {
 	readonly id = "spawn";
 	constructor(private readonly _scene: Scene) {}
@@ -56,7 +58,7 @@ class Spawn implements Action {
 			throw new Error(`Event ${spawnContext.event.id} is not supported`);
 		}
 		// TODO: picker.
-		const obj = new AntBase();
+		const obj = new AntBase(new LivingChamber());
 		const agent = new Scout(obj);
 		agentRegistry.register(agent);
 		this._scene.mount(obj);

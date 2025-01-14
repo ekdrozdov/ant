@@ -9,12 +9,17 @@
       "detail": "vite",
     },
     {
+      "label": "build",
       "type": "typescript",
       "tsconfig": "tsconfig.json",
       "problemMatcher": [
         "$tsc-watch"
       ],
       "option": "watch",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
