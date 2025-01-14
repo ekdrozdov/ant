@@ -1,5 +1,5 @@
 import { agentRegistry } from "./game/agent/agent";
-import { Scout } from "./game/agent/ai/scout";
+import { Scout } from "./game/agent/scout";
 import { LivingChamber } from "./game/buildings";
 import { AntBase } from "./game/object/ant";
 import { WorldBase, initWorld } from "./game/world";

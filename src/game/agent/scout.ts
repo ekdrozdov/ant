@@ -1,8 +1,8 @@
-import { type Ant, AntBase } from "../../object/ant";
-import { Mark, isMark } from "../../object/mark";
-import { Food } from "../../resource";
-import type { SceneObject } from "../../scene/scene";
-import { type Agent, NOISE_ROTATION } from "../agent";
+import { type Ant, AntBase } from "../object/ant";
+import { Mark, isMark } from "../object/mark";
+import { Food } from "../resource";
+import type { SceneObject } from "../scene/scene";
+import { type Agent, NOISE_ROTATION } from "./agent";
 
 interface Path {
 	readonly id: number;
