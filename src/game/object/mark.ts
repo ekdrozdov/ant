@@ -1,5 +1,5 @@
-import { RenderableBase } from "../../../renderer/renderable";
-import { SceneObjectImpl, type StaticSceneObject } from "../scene";
+import { RenderableBase } from "../../renderer/renderable";
+import { SceneObjectImpl, type StaticSceneObject } from "../scene/scene";
 
 export class Mark extends SceneObjectImpl implements StaticSceneObject {
 	readonly kind = "static";

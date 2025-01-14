@@ -1,7 +1,6 @@
+import { type Ant, AntBase } from "../../object/ant";
+import { Mark, isMark } from "../../object/mark";
 import { Food } from "../../resource";
-import { AntBase } from "../../scene/object/ant";
-import type { Ant } from "../../scene/object/ant";
-import { Mark, isMark } from "../../scene/object/mark";
 import type { SceneObject } from "../../scene/scene";
 import { type Agent, NOISE_ROTATION } from "../agent";
 

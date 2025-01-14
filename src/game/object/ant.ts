@@ -1,14 +1,14 @@
-import { RenderableBase } from "../../../renderer/renderable";
-import { EventEmitter } from "../../../utils/events";
-import { PI_2, distance, rotationOf } from "../../../utils/math";
-import type { Building } from "../../buildings";
-import { type World, getWorld } from "../../world";
+import { RenderableBase } from "../../renderer/renderable";
+import { EventEmitter } from "../../utils/events";
+import { distance, PI_2, rotationOf } from "../../utils/math";
+import type { Building } from "../buildings";
 import {
 	type DynamicSceneObject,
 	type SceneObjectBase,
 	SceneObjectImpl,
 	type StaticSceneObject,
-} from "../scene";
+} from "../scene/scene";
+import { type World, getWorld } from "../world";
 import { Mark } from "./mark";
 
 let id = 0;
