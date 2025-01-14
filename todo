@@ -1,12 +1,9 @@
-ant
-  sometimes scout losing trace, probably because it approaches some sharp turn of a trace too close; try to solve facing the farest of visible marks
+refactor to DI pattern
+move constants into configuration
 
-navigation system
-  navigation paths
-  navigate home
+add lint rule to forbid ignore of return value of type disposable
 
 task system
-  decomposing tasks
   building task graph
 
 scene serialization
@@ -14,10 +11,8 @@ scene serialization
 in-game ui
   framework
     pixilayout/pixiui
-      apply adaptive resizing
       add Screen feature, add GameScreen
       add Window feature, add TimeWindow
-  time control panel
   world editing
     spawn mode
     remove mode

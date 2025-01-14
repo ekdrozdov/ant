@@ -1,6 +1,7 @@
+import { INTERACTION_DISTANCE } from "../config";
 import { type Ant, AntBase } from "../object/ant";
 import { Mark, isMark } from "../object/mark";
-import { Food } from "../resource";
+import { Food } from "../object/resource";
 import type { SceneObject } from "../scene/scene";
 import { type Agent, NOISE_ROTATION } from "./agent";
 
@@ -212,8 +213,6 @@ class OptimizePathTask implements Task<WithPath, Path> {
 		return this;
 	}
 }
-
-export const INTERACTION_DISTANCE = 5;
 
 class ReachEndOfPathTask implements Task<WithPath, Path> {
 	context: WithPath;
