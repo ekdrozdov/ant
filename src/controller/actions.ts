@@ -56,7 +56,7 @@ class Spawn implements Action {
 		}
 		// TODO: picker.
 		const obj = new AntBase();
-		const agent = new Scout(new AntBase());
+		const agent = new Scout(obj);
 		agentRegistry.register(agent);
 		this._scene.mount(obj);
 		const { position } = spawnContext.event;

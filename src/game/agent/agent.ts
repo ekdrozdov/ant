@@ -1,8 +1,4 @@
-import {
-	type Renderable,
-	RenderableBase,
-	type Vector2d,
-} from "../../renderer/renderable";
+import { RenderableBase, type Vector2d } from "../../renderer/renderable";
 import { EventEmitter } from "../../utils/events";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
 import type { Building } from "../buildings";
@@ -46,14 +42,14 @@ export interface Ant {
 	state: "move" | "idle";
 	fuel: number;
 	readonly home: Building;
-	mark(attracting?: boolean): void;
+	mark(attracting?: boolean): Mark;
 	move(): void;
 	/**
 	 * Rotate unit clockwise.
 	 * @param radians amount of rotation.
 	 */
 	rotate(radians: number): void;
-	face(position: Vector2d): void;
+	face(position: SceneObjectBase): void;
 	stop(): void;
 	refuel(): void;
 	getVisibleObjects(): readonly SceneObjectBase[];
@@ -76,7 +72,7 @@ class Corpse extends SceneObjectImpl implements StaticSceneObject {
 		this.register(
 			getWorld().clock.onMinute(() => {
 				this.remains -= 10;
-				console.debug(`flesh remains: ${this.remains}`)
+				console.debug(`flesh remains: ${this.remains}`);
 				if (this.remains <= 0) {
 					this._onDecomposed.dispatch();
 				}
@@ -89,12 +85,12 @@ export class AntBase
 	extends SceneObjectImpl
 	implements Ant, DynamicSceneObject
 {
+	static VISION_DISTANCE = 40;
 	kind = "dynamic" as const;
 	state: "move" | "idle" = "idle";
 	fuel = 100;
 	velocity = 1;
 	private readonly visibilityHalfAngle = Math.PI / 2;
-	private readonly visionDistance = 20;
 	protected readonly world: World;
 	public readonly id: number = getId();
 	private readonly _onDead = new EventEmitter<void>();
@@ -104,8 +100,8 @@ export class AntBase
 		this.world = getWorld();
 		this.register(
 			this.world.clock.onMinute(() => {
-				this.fuel -= 10;
-				console.debug(`${this.id} fuel ${this.fuel}`)
+				this.fuel -= 1;
+				console.debug(`${this.id} fuel ${this.fuel}`);
 				if (this.fuel <= 0) {
 					const corpse = new Corpse();
 					corpse.renderable.position = this.renderable.position;
@@ -116,17 +112,11 @@ export class AntBase
 			}),
 		);
 	}
-	private markCounter = 0;
-	mark(attracting = false): void {
-		this.markCounter++ % 4 === 0 &&
-			this.world.scene.mount(
-				new Mark(this.id, attracting, {
-					kind: "mark",
-					position: { ...this.renderable.position },
-					state: "default",
-					rotation: 0,
-				}),
-			);
+	mark(attracting = false): Mark {
+		const mark = new Mark(this.id, attracting);
+		mark.renderable.position = this.renderable.position;
+		this.world.scene.mount(mark);
+		return mark;
 	}
 	move(): void {
 		this.state = "move";
@@ -139,10 +129,10 @@ export class AntBase
 		this.renderable.rotation =
 			(this.renderable.rotation + normalizedRotation) % PI_2;
 	}
-	face(target: Vector2d): void {
+	face(target: SceneObjectBase): void {
 		const targetVector = {
-			x: target.x - this.renderable.position.x,
-			y: target.y - this.renderable.position.y,
+			x: target.renderable.position.x - this.renderable.position.x,
+			y: target.renderable.position.y - this.renderable.position.y,
 		};
 		const targetRotation = rotationOf(targetVector);
 		this.renderable.rotation = targetRotation;
@@ -154,11 +144,11 @@ export class AntBase
 		throw new Error("Method not implemented.");
 	}
 	getVisibleObjects(): readonly SceneObjectBase[] {
-		return this.world.scene.findObjectsInRadius(this, this.visionDistance);
+		return this.world.scene.findObjectsInRadius(this, AntBase.VISION_DISTANCE);
 	}
 	getVisibleObjectsInfront(): readonly SceneObjectBase[] {
 		return this.world.scene
-			.findObjectsInRadius(this, this.visionDistance)
+			.findObjectsInRadius(this, AntBase.VISION_DISTANCE)
 			.filter((obj) => {
 				const targetVector = {
 					x: obj.renderable.position.x - this.renderable.position.x,
@@ -176,14 +166,13 @@ export class AntBase
 	}
 }
 
-class Mark extends SceneObjectImpl implements StaticSceneObject {
+export class Mark extends SceneObjectImpl implements StaticSceneObject {
 	readonly kind = "static";
 	constructor(
 		readonly id: number,
 		readonly attracting: boolean,
-		renderable: Renderable,
 	) {
-		super(renderable);
+		super(new RenderableBase({ kind: "mark" }));
 	}
 }
 
