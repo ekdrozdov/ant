@@ -1,6 +1,7 @@
-import { AntBase, agentRegistry } from "./game/agent/agent";
+import { agentRegistry } from "./game/agent/agent";
 import { Scout } from "./game/agent/ai/scout";
 import { LivingChamber } from "./game/buildings";
+import { AntBase } from "./game/scene/object/ant";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
 import type {} from "./renderer/renderable";

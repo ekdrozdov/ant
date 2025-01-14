@@ -1,5 +1,6 @@
-import { AntBase, agentRegistry } from "../game/agent/agent";
+import { agentRegistry } from "../game/agent/agent";
 import { Scout } from "../game/agent/ai/scout";
+import { AntBase } from "../game/scene/object/ant";
 import type { Scene } from "../game/scene/scene";
 import { getWorld } from "../game/world";
 import type { RenderableKind, Vector2d } from "../renderer/renderable";

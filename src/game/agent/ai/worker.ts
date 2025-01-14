@@ -1,5 +1,3 @@
-import { Agent, Ant } from "../agent";
-
 // export class Worker implements Agent {
 // 	execute: () => void;
 // 	constructor(private readonly ant: Ant) {}
