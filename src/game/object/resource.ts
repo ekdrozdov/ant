@@ -1,6 +1,6 @@
 import { RenderableBase } from "../../renderer/renderable";
 import { distance } from "../../utils/math";
-import { INTERACTION_DISTANCE } from "../config";
+import { config } from "../config";
 import {
 	type SceneObject,
 	SceneObjectImpl,
@@ -24,10 +24,38 @@ export function transferResource<T extends ResourceTag>(
 	target.amount += transactionAmount;
 }
 
-export class Food
+export function isWithinInteractionRange(
+	one: SceneObject,
+	other: SceneObject,
+): boolean {
+	return (
+		distance(one.renderable.position, other.renderable.position) <=
+		config.interactionDistance
+	);
+}
+
+export function assertWithinInteractionRange(
+	one: SceneObject,
+	other: SceneObject,
+) {
+	if (!isWithinInteractionRange(one, other)) {
+		throw new Error("Objects are not within interaction range");
+	}
+}
+
+export class FoodResource implements Resource<"food"> {
+	readonly tag = "food";
+	amount: number;
+	constructor(amount = 0) {
+		this.amount = amount;
+	}
+}
+
+export class FoodSourceObject
 	extends SceneObjectImpl
 	implements Resource<"food">, StaticSceneObject
 {
+	food = new FoodResource();
 	amount: number;
 	readonly tag = "food";
 	kind = "static" as const;
@@ -38,22 +66,4 @@ export class Food
 		this.renderable.rotation = -Math.PI / 2;
 		this.amount = amount;
 	}
-}
-
-export function isWithinInteractionRange(
-	one: SceneObject,
-	other: SceneObject,
-): boolean {
-	return (
-		distance(one.renderable.position, other.renderable.position) <=
-		INTERACTION_DISTANCE
-	);
-}
-
-function openInteractionWithStatic(requester: SceneObject, target: StaticSceneObject) {
-
-}
-
-class Interaction {
-	
 }

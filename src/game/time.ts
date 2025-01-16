@@ -9,12 +9,13 @@ export interface GameClock {
 	/**
 	 * Tick represents a minimal game time unit.
 	 */
-	readonly onTick: Event;
-	readonly years: number;
+	readonly onSecond: Event;
+	readonly year: number;
 	readonly month: number;
-	readonly days: number;
-	readonly hours: number;
-	readonly minutes: number;
+	readonly day: number;
+	readonly hour: number;
+	readonly minute: number;
+	readonly second: number;
 	resume(): void;
 	pause(): void;
 	/**
@@ -34,14 +35,15 @@ export class GameClockBase implements GameClock {
 	readonly onHour = this._onHour.event;
 	private readonly _onMinute = new EventEmitter();
 	readonly onMinute = this._onMinute.event;
-	private readonly _onTick = new EventEmitter();
-	readonly onTick = this._onTick.event;
+	private readonly _onSecond = new EventEmitter();
+	readonly onSecond = this._onSecond.event;
 
-	years = 0;
+	year = 0;
 	month = 0;
-	days = 0;
-	hours = 0;
-	minutes = 0;
+	day = 0;
+	hour = 0;
+	minute = 0;
+	second = 0;
 
 	private _intervalId?: ReturnType<typeof setInterval>;
 	private _isRunning = false;
@@ -60,30 +62,41 @@ export class GameClockBase implements GameClock {
 	setFreq(value: number): void {
 		const update = () => {
 			if (!this._isRunning) return;
-			this._onTick.dispatch();
 
-			this.minutes = ++this.minutes % 60;
-			if (this.minutes !== 0) return;
+			this.second = ++this.second % 60;
+			this._onSecond.dispatch();
+			if (this.second !== 0) {
+				return;
+			}
+
+			this.minute = ++this.minute % 60;
 			this._onMinute.dispatch();
-			this.hours = ++this.hours % 24;
-			if (this.hours !== 0) {
-				this._onHour.dispatch();
+			if (this.minute !== 0) {
 				return;
 			}
-			this.days = ++this.days % 30;
-			if (this.days !== 0) {
-				this._onDay.dispatch();
+
+			this.hour = ++this.hour % 24;
+			this._onHour.dispatch();
+			if (this.hour !== 0) {
 				return;
 			}
+
+			this.day = ++this.day % 30;
+			this._onDay.dispatch();
+			if (this.day !== 0) {
+				return;
+			}
+
 			this.month = ++this.month % 12;
+			this._onMonth.dispatch();
 			if (this.month !== 0) {
-				this._onMonth.dispatch();
 				console.log(`month ${this.month}`);
 				return;
 			}
-			this.years = ++this.years;
+
+			this.year = ++this.year;
 			this._onYear.dispatch();
-			console.log(`year ${this.years}`);
+			console.log(`year ${this.year}`);
 		};
 		clearInterval(this._intervalId);
 		if (value === 0) return;

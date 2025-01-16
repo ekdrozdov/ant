@@ -35,7 +35,7 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	let i = 0;
 	// Limit fps with screen frequency rate.
 	// To keep 60 fps, loop execution should took no longer than 16.6 milliseconds.
-	world.clock.onTick(() => {
+	world.clock.onSecond(() => {
 		if (i % 5 === 0) {
 			for (const agent of agentRegistry.agents) {
 				agent.execute();

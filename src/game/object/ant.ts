@@ -1,15 +1,24 @@
 import { RenderableBase } from "../../renderer/renderable";
 import { EventEmitter } from "../../utils/events";
-import { distance, PI_2, rotationOf } from "../../utils/math";
+import { PI_2, distance, rotationOf } from "../../utils/math";
 import type { Building } from "../buildings";
+import { config } from "../config";
 import {
 	type DynamicSceneObject,
+	type SceneObject,
 	type SceneObjectBase,
 	SceneObjectImpl,
 	type StaticSceneObject,
 } from "../scene/scene";
 import { type World, getWorld } from "../world";
 import { Mark } from "./mark";
+import {
+	FoodResource,
+	type FoodSourceObject,
+	assertWithinInteractionRange,
+	isWithinInteractionRange,
+	transferResource,
+} from "./resource";
 
 let id = 0;
 function getId() {
@@ -19,7 +28,7 @@ function getId() {
 export interface Ant {
 	readonly id: number;
 	state: "move" | "idle";
-	fuel: number;
+	food: FoodResource;
 	readonly home: Building;
 	mark(attracting?: boolean): Mark;
 	move(): void;
@@ -28,23 +37,23 @@ export interface Ant {
 	 * @param radians amount of rotation.
 	 */
 	rotate(radians: number): void;
-	face(position: SceneObjectBase): void;
+	face(position: SceneObject): void;
+	isWithinInteractionRange(target: SceneObject): boolean;
 	stop(): void;
-	refuel(): void;
-	getVisibleObjects(): readonly SceneObjectBase[];
-	getVisibleObjectsInfront(): readonly SceneObjectBase[];
-	distanceTo(target: SceneObjectBase): number;
+	eat(source: FoodSourceObject): void;
+	getVisibleObjects(): readonly SceneObject[];
+	getVisibleObjectsInfront(): readonly SceneObject[];
+	distanceTo(target: SceneObject): number;
 }
 
 export class AntBase
 	extends SceneObjectImpl
 	implements Ant, DynamicSceneObject
 {
-	static VISION_DISTANCE = 40;
 	kind = "dynamic" as const;
 	state: "move" | "idle" = "idle";
-	fuel = 100;
-	velocity = 1;
+	food = new FoodResource(100);
+	velocity = config.antVelocity;
 	private readonly visibilityHalfAngle = Math.PI / 2;
 	protected readonly world: World;
 	public readonly id: number = getId();
@@ -55,9 +64,9 @@ export class AntBase
 		this.world = getWorld();
 		this.register(
 			this.world.clock.onMinute(() => {
-				this.fuel -= 1;
-				console.debug(`${this.id} fuel ${this.fuel}`);
-				if (this.fuel <= 0) {
+				this.food.amount -= 1;
+				console.debug(`${this.id} food ${this.food.amount}`);
+				if (this.food.amount <= 0) {
 					const corpse = new AntCorpse();
 					corpse.renderable.position = this.renderable.position;
 					this.world.scene.mount(corpse);
@@ -92,18 +101,26 @@ export class AntBase
 		const targetRotation = rotationOf(targetVector);
 		this.renderable.rotation = targetRotation;
 	}
+	isWithinInteractionRange(target: SceneObject): boolean {
+		return isWithinInteractionRange(this, target);
+	}
 	stop(): void {
 		this.state = "idle";
 	}
-	refuel(): void {
-		throw new Error("Method not implemented.");
+	eat(source: FoodSourceObject): void {
+		assertWithinInteractionRange(this, source);
+		transferResource(
+			source.food,
+			this.food,
+			config.antFoodConsumptionPerSecond,
+		);
 	}
-	getVisibleObjects(): readonly SceneObjectBase[] {
-		return this.world.scene.findObjectsInRadius(this, AntBase.VISION_DISTANCE);
+	getVisibleObjects(): readonly SceneObject[] {
+		return this.world.scene.findObjectsInRadius(this, config.antVisionDistance);
 	}
-	getVisibleObjectsInfront(): readonly SceneObjectBase[] {
+	getVisibleObjectsInfront(): readonly SceneObject[] {
 		return this.world.scene
-			.findObjectsInRadius(this, AntBase.VISION_DISTANCE)
+			.findObjectsInRadius(this, config.antVisionDistance)
 			.filter((obj) => {
 				const targetVector = {
 					x: obj.renderable.position.x - this.renderable.position.x,
