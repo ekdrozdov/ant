@@ -111,9 +111,9 @@ export class SceneBase implements Scene {
 	}
 
 	updateBatch(dt: number) {
-		const objs: DynamicSceneObject[] = this._objs.filter(
-			(o) => o.kind === "dynamic",
-		);
+		const objs: DynamicSceneObject[] = this._objs
+			.filter((o) => o.kind === "dynamic")
+			.filter((o) => o.state === "move");
 
 		const prevPos: Vector2d[] = [];
 		for (const obj of objs) {

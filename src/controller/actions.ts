@@ -1,7 +1,7 @@
 import { agentRegistry } from "../game/agent/agent";
 import { Scout } from "../game/agent/scout";
-import { LivingChamber } from "../game/buildings";
 import { AntBase } from "../game/object/ant";
+import { LivingChamber } from "../game/object/buildings";
 import type { Scene } from "../game/scene/scene";
 import { getWorld } from "../game/world";
 import type { RenderableKind, Vector2d } from "../renderer/renderable";

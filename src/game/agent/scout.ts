@@ -155,7 +155,7 @@ class EatTask implements Task<WithPath, "completed"> {
 		}
 
 		// Eat until full.
-		if (this.ant.food.amount === config.antFoodMaxAmount) {
+		if (this.ant.food.amount >= config.antFoodMaxAmount) {
 			this.result = "completed";
 			return this;
 		}
@@ -180,6 +180,7 @@ class EnterInteractionRangeTask<Target extends SceneObject>
 		if (this.ant.isWithinInteractionRange(this.target)) {
 			this.ant.stop();
 			this.result = this.target;
+			return this;
 		}
 		this.ant.face(this.target);
 		this.ant.move();
@@ -283,6 +284,7 @@ class ScanTask<Target extends SceneObject> implements Task<WithPath, Path> {
 
 		const eatTask = this.eatTask;
 		// Food is low and not already eating -> cancel current tasks and eat.
+		// TODO: ant could die when going home; fix max distance.
 		if (!eatTask && this.ant.food.amount < config.antFoodLowAmount) {
 			// Cancel other tasks.
 			this.extendPathTask = undefined;
@@ -316,7 +318,11 @@ class ScanTask<Target extends SceneObject> implements Task<WithPath, Path> {
 		}
 
 		// Lookup target.
-		const target = lookup(this.ant, this.targetClass);
+		// TODO: filter out objects belongs to home.
+		const target = lookup(this.ant, this.targetClass).filter(
+			// biome-ignore lint/suspicious/noExplicitAny: TODO: better types.
+			(o) => o !== (this.ant.home.storage as any),
+		);
 		if (target.length > 0) {
 			// TODO: add enter interaction range task.
 			// Target found -> complete task.
@@ -327,7 +333,8 @@ class ScanTask<Target extends SceneObject> implements Task<WithPath, Path> {
 		// TODO: limit path by time rather than by endurance.
 		const pathMaxDistance =
 			(config.antFoodLowAmount / config.antFoodDepletionPerMinute) *
-			config.antVelocity * 60;
+			config.antVelocity *
+			60;
 
 		const reachStartOfThePathTask = this.reachStartOfThePathTask;
 
@@ -438,7 +445,7 @@ class ReachStartOfPathTask implements Task<WithPath, Path> {
 		const closest = this.path.findClosestToStart(marks);
 		// TODO: add interaction range to enable mark lifetime refresh.
 		// Already reach the end -> complete.
-		if (this.ant.distanceTo(closest) < 1) {
+		if (this.ant.distanceTo(closest) < config.interactionDistance) {
 			this.result = this.path;
 			this.ant.stop();
 			return this;

@@ -1,7 +1,6 @@
 import { RenderableBase } from "../../renderer/renderable";
 import { EventEmitter } from "../../utils/events";
 import { PI_2, distance, rotationOf } from "../../utils/math";
-import type { Building } from "../buildings";
 import { config } from "../config";
 import {
 	type DynamicSceneObject,
@@ -11,6 +10,7 @@ import {
 	type StaticSceneObject,
 } from "../scene/scene";
 import { type World, getWorld } from "../world";
+import type { Building } from "./buildings";
 import { Mark } from "./mark";
 import {
 	FoodResource,
@@ -83,6 +83,7 @@ export class AntBase
 		return mark;
 	}
 	move(): void {
+		console.log("moving");
 		this.state = "move";
 	}
 	rotate(radians: number): void {
@@ -105,9 +106,11 @@ export class AntBase
 		return isWithinInteractionRange(this, target);
 	}
 	stop(): void {
+		console.log('stopped')
 		this.state = "idle";
 	}
 	eat(source: FoodSourceObject): void {
+		console.log('eating')
 		assertWithinInteractionRange(this, source);
 		transferResource(
 			source.food,

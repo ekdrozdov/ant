@@ -22,6 +22,7 @@ export function transferResource<T extends ResourceTag>(
 	const transactionAmount = Math.min(source.amount, amount);
 	source.amount -= transactionAmount;
 	target.amount += transactionAmount;
+	console.log(`src ${source.amount} target ${target.amount}`)
 }
 
 export function isWithinInteractionRange(
@@ -56,6 +57,7 @@ export class FoodSourceObject
 	implements Resource<"food">, StaticSceneObject
 {
 	food = new FoodResource();
+	// TODO: fix this scum: amount encapsulated into food. 
 	amount: number;
 	readonly tag = "food";
 	kind = "static" as const;
