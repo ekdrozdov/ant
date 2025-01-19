@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import {
 	TaskGraphExecutor,
 	type TaskNode,
-	createPendingTaskResult,
 	createTaskNode,
 	createTaskResultFrom,
+	pendingTaskResult,
 } from "./task";
 
 /**
@@ -97,7 +97,7 @@ describe("task graph executor", () => {
 			return () => {
 				stepsLeft--;
 				if (stepsLeft > 0) {
-					return createPendingTaskResult();
+					return pendingTaskResult;
 				}
 				return createTaskResultFrom(undefined);
 			};
@@ -109,7 +109,7 @@ describe("task graph executor", () => {
 			return () => {
 				if (checkPhase) {
 					checkPhase = false;
-					return createPendingTaskResult();
+					return pendingTaskResult;
 				}
 				return input % 2 === 0
 					? createTaskResultFrom("even")

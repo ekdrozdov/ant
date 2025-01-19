@@ -1,4 +1,4 @@
-export interface TaskNode<Input, Output> {
+export interface TaskNode<Input = unknown, Output = unknown> {
 	createTask(input: Input): Task<Output>;
 	setNextTaskResolver(resolve: (output: Output) => Task<unknown>): void;
 	// @internal
@@ -21,13 +21,9 @@ interface Task<Output> {
 	execute(): TaskResult<Output>;
 }
 
-const pendingTaskResult: PendingTaskResult = {
+export const pendingTaskResult: PendingTaskResult = {
 	status: "pending",
 } as const;
-
-export function createPendingTaskResult(): PendingTaskResult {
-	return pendingTaskResult;
-}
 
 export function createTaskResultFrom<Output>(
 	output: Output,
@@ -41,6 +37,11 @@ export function createTaskResultFrom<Output>(
 export type TaskExecutorFactory<Input, Output> = (
 	input: Input,
 ) => () => TaskResult<Output>;
+
+export type TaskGraph<RootInput, TerminalOutput> = {
+	root: TaskNode<RootInput>;
+	terminal: TaskNode<unknown, TerminalOutput>;
+};
 
 export function createTaskNode<Input, Output>(
 	taskExecutorFactory: TaskExecutorFactory<Input, Output>,

@@ -4,6 +4,13 @@ import { Mark, isMark } from "../object/mark";
 import { FoodSourceObject } from "../object/resource";
 import type { SceneObject } from "../scene/scene";
 import { type Agent, NOISE_ROTATION } from "./agent";
+import {
+	type TaskExecutorFactory,
+	type TaskGraph,
+	createTaskNode,
+	createTaskResultFrom,
+	pendingTaskResult,
+} from "./task";
 
 interface Path {
 	readonly id: number;
@@ -92,6 +99,45 @@ type WithPath = {
 	readonly path: Path;
 };
 
+const eatExecutor: TaskExecutorFactory<
+	{
+		ant: Ant;
+		target: FoodSourceObject;
+	},
+	void
+> = (input) => {
+	const { ant, target } = input;
+	console.debug(`${ant.id} initializing eatExecutor`);
+	return () => {
+		if (ant.food.amount >= config.antFoodMaxAmount) {
+			return createTaskResultFrom(undefined);
+		}
+		ant.eat(target);
+		return pendingTaskResult;
+	};
+};
+
+function createEatAtHomeTaskGraph(ant: Ant): TaskGraph<PathContext, void> {
+	const reachStartOfPathTask = createTaskNode(reachStartOfPathExecutor);
+	const waitForFoodTask = createTaskNode(waitForFoodExecutor);
+	const enterInteractionRangeTask = createTaskNode(
+		enterInteractionRangeExecutor,
+	);
+	const eatTask = createTaskNode(eatExecutor);
+
+	reachStartOfPathTask.setNextTaskResolver(() =>
+		waitForFoodTask.createTask({ ant }),
+	);
+	waitForFoodTask.setNextTaskResolver((availableFood) =>
+		enterInteractionRangeTask.createTask({ ant, target: availableFood }),
+	);
+
+	return {
+		root: reachStartOfPathTask,
+		terminal: eatTask,
+	};
+}
+
 class EatTask implements Task<WithPath, "completed"> {
 	result: "pending" | "completed" = "pending";
 	readonly context: WithPath;
@@ -165,6 +211,26 @@ class EatTask implements Task<WithPath, "completed"> {
 	}
 }
 
+const enterInteractionRangeExecutor: TaskExecutorFactory<
+	{
+		ant: Ant;
+		target: FoodSourceObject;
+	},
+	FoodSourceObject
+> = (input) => {
+	const { ant, target } = input;
+	console.debug(`${ant.id} initializing enterInteractionRangeExecutor`);
+	return () => {
+		if (ant.isWithinInteractionRange(target)) {
+			ant.stop();
+			return createTaskResultFrom(target);
+		}
+		ant.face(target);
+		ant.move();
+		return pendingTaskResult;
+	};
+};
+
 class EnterInteractionRangeTask<Target extends SceneObject>
 	implements Task<void, Target>
 {
@@ -187,6 +253,21 @@ class EnterInteractionRangeTask<Target extends SceneObject>
 		return this;
 	}
 }
+
+const waitForFoodExecutor: TaskExecutorFactory<
+	{ ant: Ant },
+	FoodSourceObject
+> = (input) => {
+	const { ant } = input;
+	console.debug(`${ant.id} initializing waitForFoodExecutor`);
+	return () => {
+		const targets = lookup(ant, FoodSourceObject);
+		if (targets.length > 0) {
+			return createTaskResultFrom(targets[0]);
+		}
+		return pendingTaskResult;
+	};
+};
 
 class WaitForTargetTask<Target extends SceneObject>
 	implements Task<void, Target>
@@ -218,6 +299,30 @@ function lookup<T extends SceneObject>(
 ): T[] {
 	return ant.getVisibleObjects().filter((o) => isInstanceOf(o, targetClass));
 }
+
+const extendPathExecutor: TaskExecutorFactory<PathContext, Path> = (input) => {
+	const { ant, path } = input;
+	const visibleClosesToEndPathMark = path.findClosestToEnd(
+		ant.getVisibleObjects().filter(isMark),
+	);
+	console.debug(`${ant.id} initializing extendPathExecutor`);
+	return () => {
+		if (
+			ant.distanceTo(visibleClosesToEndPathMark) >
+			config.pathAdjacentNodesDistance
+		) {
+			path.append(ant.mark());
+			ant.stop();
+			return createTaskResultFrom(path);
+		}
+
+		if (Math.random() < 0.1) {
+			ant.rotate(Math.sign(Math.random() - 0.5) * NOISE_ROTATION);
+		}
+		ant.move();
+		return pendingTaskResult;
+	};
+};
 
 class ExtendPathTask implements Task<WithPath, Path> {
 	readonly context: WithPath;
@@ -251,6 +356,45 @@ class ExtendPathTask implements Task<WithPath, Path> {
 
 		return this;
 	}
+}
+
+function createScanTaskGraph<Target extends SceneObject>(
+	ant: Ant,
+	targetClass: ConstructorType<Target>,
+): TaskGraph<Ant, Path> {
+	const eatAtHomeTaskGraph = createEatAtHomeTaskGraph(ant);
+	const reachEndOfThePathTask = createTaskNode(reachEndOfPathExecutor);
+	const reachStartOfThePathTask = createTaskNode(reachStartOfPathExecutor);
+	const extendPathTask = createTaskNode(extendPathExecutor);
+
+	reachEndOfThePathTask.setNextTaskResolver(() => {
+		const target = lookup(ant, targetClass).filter(
+			// biome-ignore lint/suspicious/noExplicitAny: TODO: better types.
+			(o) => o !== (ant.home.storage as any),
+		);
+		if (target.length > 0) {
+			// TODO: add enter interaction range task.
+			// Target found -> complete task.
+			// TODO: termination dummy node.
+		}
+		const pathMaxDistance =
+			(config.antFoodLowAmount / config.antFoodDepletionPerMinute) *
+			config.antVelocity *
+			60;
+
+		if (pathDistance >= pathMaxDistance) {
+			console.log(`curr distance: ${pathDistance}`);
+			return reachStartOfThePathTask.createTask(path);
+		}
+	});
+
+	// init path
+	// maybe eat
+	// lookup
+	// acc distance
+	// max distance
+
+	return {};
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: not supposed to be used for instantiation and cannot use "unknown[]" here.
@@ -400,6 +544,53 @@ class OptimizePathTask implements Task<WithPath, Path> {
 		return this;
 	}
 }
+
+type PathContext = {
+	ant: Ant;
+	path: Path;
+};
+
+const reachStartOfPathExecutor: TaskExecutorFactory<PathContext, void> = (
+	input,
+) => {
+	const { ant, path } = input;
+	console.debug(`${ant.id} initializing reachStartOfPathExecutor`);
+	return () => {
+		const marks = lookup(ant, Mark);
+		const closest = path.findClosestToStart(marks);
+		if (ant.distanceTo(closest) < config.interactionDistance) {
+			// TODO: add interaction range to enable mark lifetime refresh.
+			// Already reach the end -> complete.
+			ant.stop();
+			return createTaskResultFrom(undefined);
+		}
+		ant.face(closest);
+		// TODO: add move options with max distance to prevent overreach of the move target.
+		ant.move();
+		return pendingTaskResult;
+	};
+};
+
+const reachEndOfPathExecutor: TaskExecutorFactory<PathContext, void> = (
+	input,
+) => {
+	const { ant, path } = input;
+	console.debug(`${ant.id} initializing reachEndOfPathExecutor`);
+	return () => {
+		const marks = lookup(ant, Mark);
+		const closest = path.findClosestToEnd(marks);
+		if (ant.distanceTo(closest) < config.interactionDistance) {
+			// TODO: add interaction range to enable mark lifetime refresh.
+			// Already reach the end -> complete.
+			ant.stop();
+			return createTaskResultFrom(undefined);
+		}
+		ant.face(closest);
+		// TODO: add move options with max distance to prevent overreach of the move target.
+		ant.move();
+		return pendingTaskResult;
+	};
+};
 
 class ReachEndOfPathTask implements Task<WithPath, Path> {
 	context: WithPath;
