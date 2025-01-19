@@ -1,32 +1,35 @@
-interface TaskNode<Input, Output> {
+export interface TaskNode<Input, Output> {
 	createTask(input: Input): Task<Output>;
-	chain(factory: (output: Output) => Task<unknown>): void;
-	resolveNextExecutable(output: Output): Task<unknown>;
+	setNextTaskResolver(resolve: (output: Output) => Task<unknown>): void;
+	// @internal
+	resolveNextTask(output: Output): Task<unknown>;
 }
 
 interface PendingTaskResult {
-	status: "pending";
+	readonly status: "pending";
 }
 
 interface CompletedTaskResult<Output = unknown> {
-	status: "completed";
+	readonly status: "completed";
 	output: Output;
 }
 
 type TaskResult<Output> = PendingTaskResult | CompletedTaskResult<Output>;
-
-type TaskExecutor<Output> = () => TaskResult<Output>;
 
 interface Task<Output> {
 	readonly node: TaskNode<unknown, Output>;
 	execute(): TaskResult<Output>;
 }
 
-export const pendingTaskResult: PendingTaskResult = {
+const pendingTaskResult: PendingTaskResult = {
 	status: "pending",
 } as const;
 
-export function taskResultFrom<Output>(
+export function createPendingTaskResult(): PendingTaskResult {
+	return pendingTaskResult;
+}
+
+export function createTaskResultFrom<Output>(
 	output: Output,
 ): CompletedTaskResult<Output> {
 	return {
@@ -37,7 +40,7 @@ export function taskResultFrom<Output>(
 
 export type TaskExecutorFactory<Input, Output> = (
 	input: Input,
-) => TaskExecutor<Output>;
+) => () => TaskResult<Output>;
 
 export function createTaskNode<Input, Output>(
 	taskExecutorFactory: TaskExecutorFactory<Input, Output>,
@@ -46,17 +49,10 @@ export function createTaskNode<Input, Output>(
 }
 
 class TaskNodeImpl<Input, Output> implements TaskNode<Input, Output> {
-	private chainedTaskFactory?: (output: Output) => Task<unknown>;
+	private _resolveNextTask?: (output: Output) => Task<unknown>;
 	constructor(
 		private readonly taskExecutorFactory: TaskExecutorFactory<Input, Output>,
 	) {}
-	resolveNextExecutable(output: Output): Task<unknown> {
-		const factory = this.chainedTaskFactory;
-		if (!factory) {
-			throw new Error("No task was chained");
-		}
-		return factory(output);
-	}
 	createTask(input: Input): Task<Output> {
 		const execute = this.taskExecutorFactory(input);
 		return {
@@ -64,15 +60,23 @@ class TaskNodeImpl<Input, Output> implements TaskNode<Input, Output> {
 			execute: execute.bind(execute),
 		};
 	}
-	chain(factory: (output: Output) => Task<unknown>): void {
-		this.chainedTaskFactory = factory;
+	setNextTaskResolver(resolve: (output: Output) => Task<unknown>): void {
+		this._resolveNextTask = resolve;
+	}
+	// @internal
+	resolveNextTask(output: Output): Task<unknown> {
+		const resolveNextTask = this._resolveNextTask;
+		if (!resolveNextTask) {
+			throw new Error("Next task resolver was not set.");
+		}
+		return resolveNextTask(output);
 	}
 }
 
-export class TaskGraphExecutor<Input> {
+export class TaskGraphExecutor {
 	private executable: Task<unknown>;
-	constructor(initialNode: TaskNode<Input, unknown>, input: Input) {
-		this.executable = initialNode.createTask(input);
+	constructor(initialTask: Task<unknown>) {
+		this.executable = initialTask;
 	}
 	execute() {
 		const result = this.executable.execute();
@@ -80,42 +84,8 @@ export class TaskGraphExecutor<Input> {
 			const output = result.output;
 			const nextExecutable =
 				// Output type compatibility is guaranteed by task chaining typing.
-				this.executable.node.resolveNextExecutable(output);
+				this.executable.node.resolveNextTask(output);
 			this.executable = nextExecutable;
 		}
 	}
 }
-
-// interface Path {
-// 	path: number[];
-// }
-
-// const path = {} as Path;
-// let food = 3;
-
-// const resolve = {} as TaskNode<{ food: "food" }, { food: "food" }>;
-// const lookup = {} as TaskNode<void, { food: "food" | undefined }>;
-// const assertLimit = {} as TaskNode<Path, boolean>;
-// const extend = {} as TaskNode<Path, void>;
-// const toStart = {} as TaskNode<Path, void>;
-// const eatAtHome = {} as TaskNode<Path, void>;
-
-// lookup.chain((res) => {
-// 	const food = res.food;
-// 	if (food === "food") {
-// 		return resolve.createTask({ food });
-// 	}
-// 	return assertLimit.createTask(path);
-// });
-
-// assertLimit.chain((res) => {
-// 	return res ? toStart.createTask(path) : extend.createTask(path);
-// });
-
-// extend.chain(() => {
-// 	food--;
-// 	if (food < 30) {
-// 		return eatAtHome.createTask(path);
-// 	}
-// 	return lookup.createTask();
-// });

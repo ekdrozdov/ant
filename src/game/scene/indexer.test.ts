@@ -12,7 +12,7 @@ class DynamicTestObj extends SceneObjectImpl implements DynamicSceneObject {
 
 describe("Indexer", () => {
 	describe("register", () => {
-		it("contains registered obj ", () => {
+		it("contains registered obj", () => {
 			const indexer = new SceneIndexer(1, { x: 10, y: 10 });
 			const renderable = new RenderableBase({ position: { x: 5, y: 5 } });
 			const obj = new DynamicTestObj(renderable);
@@ -25,7 +25,7 @@ describe("Indexer", () => {
 			);
 		});
 
-		it("does not contain non registered obj ", () => {
+		it("does not contain non registered obj", () => {
 			const indexer = new SceneIndexer(1, { x: 10, y: 10 });
 			const renderable = new RenderableBase({ position: { x: 5, y: 5 } });
 			const registeredObj = new DynamicTestObj(renderable);
