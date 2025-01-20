@@ -14,7 +14,9 @@ interface CompletedTaskResult<Output = unknown> {
 	output: Output;
 }
 
-type TaskResult<Output> = PendingTaskResult | CompletedTaskResult<Output>;
+export type TaskResult<Output> =
+	| PendingTaskResult
+	| CompletedTaskResult<Output>;
 
 interface Task<Output> {
 	readonly node: TaskNode<unknown, Output>;
@@ -34,9 +36,11 @@ export function createTaskResultFrom<Output>(
 	};
 }
 
+export type TaskExecutor<Output> = () => TaskResult<Output>;
+
 export type TaskExecutorFactory<Input, Output> = (
 	input: Input,
-) => () => TaskResult<Output>;
+) => TaskExecutor<Output>;
 
 export type TaskGraph<RootInput, TerminalOutput> = {
 	root: TaskNode<RootInput>;
