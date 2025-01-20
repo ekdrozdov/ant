@@ -80,6 +80,7 @@ class PathImpl implements Path {
 
 function* eat(input: { ant: Ant; target: FoodSourceObject }) {
 	const { ant, target } = input;
+	console.debug(`${ant.id} eat`);
 	while (ant.food.amount < config.antFoodMaxAmount) {
 		ant.eat(target);
 		yield;
@@ -113,7 +114,7 @@ function* enterInteractionRange<Target extends SceneObject>(input: {
 	target: Target;
 }) {
 	const { ant, target } = input;
-	console.debug(`${ant.id} initializing enterInteractionRangeExecutor`);
+	console.debug(`${ant.id} enterInteractionRange`);
 	ant.face(target);
 	ant.move();
 	while (!ant.isWithinInteractionRange(target)) {
@@ -126,7 +127,7 @@ function* enterInteractionRange<Target extends SceneObject>(input: {
 
 function* waitForFood(input: { ant: Ant }): Generator<void, FoodSourceObject> {
 	const { ant } = input;
-	console.debug(`${ant.id} initializing waitForFoodExecutor`);
+	console.debug(`${ant.id} waitForFood`);
 	while (true) {
 		const targets = lookup(ant, FoodSourceObject);
 		if (targets.length > 0) {
@@ -152,23 +153,20 @@ function* extendPath(input: PathContext): Generator<void, Path> {
 	const visibleClosesToEndPathMark = path.findClosestToEnd(
 		ant.getVisibleObjects().filter(isMark),
 	);
-	console.debug(`${ant.id} initializing extendPathExecutor`);
-	while (true) {
-		if (
-			ant.distanceTo(visibleClosesToEndPathMark) >
-			config.pathAdjacentNodesDistance
-		) {
-			path.append(ant.mark());
-			ant.stop();
-			return path;
-		}
-
+	console.debug(`${ant.id} extendPath`);
+	ant.move();
+	while (
+		ant.distanceTo(visibleClosesToEndPathMark) <
+		config.pathAdjacentNodesDistance
+	) {
 		if (Math.random() < 0.1) {
 			ant.rotate(Math.sign(Math.random() - 0.5) * NOISE_ROTATION);
 		}
-		ant.move();
 		yield;
 	}
+	ant.stop();
+	path.append(ant.mark());
+	return path;
 }
 
 function createScanTaskGraph<Target extends SceneObject>(
@@ -266,7 +264,7 @@ type PathContext = {
 
 function* reachStartOfPath(input: PathContext): Generator<void, PathContext> {
 	const { ant, path } = input;
-	console.debug(`${ant.id} initializing reachStartOfPathExecutor`);
+	console.debug(`${ant.id} reachStartOfPath`);
 	while (true) {
 		const marks = lookup(ant, Mark);
 		const closest = path.findClosestToStart(marks);
@@ -285,7 +283,7 @@ function* reachStartOfPath(input: PathContext): Generator<void, PathContext> {
 
 function* reachEndOfPath(input: PathContext): Generator<void, PathContext> {
 	const { ant, path } = input;
-	console.debug(`${ant.id} initializing reachEndOfPathExecutor`);
+	console.debug(`${ant.id} reachEndOfPath`);
 	while (true) {
 		const marks = lookup(ant, Mark);
 		const closest = path.findClosestToEnd(marks);
