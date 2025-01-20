@@ -1,72 +1,56 @@
 export interface TaskNode<Input = unknown, Output = unknown> {
-	createTask(input: Input): Task<Output>;
-	setNextTaskResolver(resolve: (output: Output) => Task<unknown>): void;
-	// @internal
+		start(input: Input): Task<Output>;
+		next(resolve: (output: Output) => Task<unknown>): void;
+		next(task: TaskNode<Output> | TaskNode<void>): void;
+	}
+
+interface Internal_TaskNode<Input = unknown, Output = unknown>
+	extends TaskNode<Input, Output> {
 	resolveNextTask(output: Output): Task<unknown>;
 }
 
-interface PendingTaskResult {
-	readonly status: "pending";
-}
-
-interface CompletedTaskResult<Output = unknown> {
-	readonly status: "completed";
-	output: Output;
-}
-
-export type TaskResult<Output> =
-	| PendingTaskResult
-	| CompletedTaskResult<Output>;
-
 interface Task<Output> {
 	readonly node: TaskNode<unknown, Output>;
-	execute(): TaskResult<Output>;
+	readonly executor: IterableIterator<void, Output>;
 }
-
-export const pendingTaskResult: PendingTaskResult = {
-	status: "pending",
-} as const;
-
-export function createTaskResultFrom<Output>(
-	output: Output,
-): CompletedTaskResult<Output> {
-	return {
-		status: "completed",
-		output,
-	};
-}
-
-export type TaskExecutor<Output> = () => TaskResult<Output>;
-
-export type TaskExecutorFactory<Input, Output> = (
-	input: Input,
-) => TaskExecutor<Output>;
 
 export type TaskGraph<RootInput, TerminalOutput> = {
 	root: TaskNode<RootInput>;
 	terminal: TaskNode<unknown, TerminalOutput>;
 };
 
-export function createTaskNode<Input, Output>(
-	taskExecutorFactory: TaskExecutorFactory<Input, Output>,
+type TaskExecutorFactory<Input, Output> = (
+	input: Input,
+) => IterableIterator<void, Output>;
+
+export function task<Input = void, Output = void>(
+	createTaskExecutor: TaskExecutorFactory<Input, Output>,
 ): TaskNode<Input, Output> {
-	return new TaskNodeImpl(taskExecutorFactory);
+	return new TaskNodeImpl(createTaskExecutor);
 }
 
 class TaskNodeImpl<Input, Output> implements TaskNode<Input, Output> {
 	private _resolveNextTask?: (output: Output) => Task<unknown>;
 	constructor(
-		private readonly taskExecutorFactory: TaskExecutorFactory<Input, Output>,
+		private readonly createTaskExecutor: TaskExecutorFactory<Input, Output>,
 	) {}
-	createTask(input: Input): Task<Output> {
-		const execute = this.taskExecutorFactory(input);
+	start(input: Input): Task<Output> {
+		const executor = this.createTaskExecutor(input);
 		return {
 			node: this,
-			execute: execute.bind(execute),
+			executor,
 		};
 	}
-	setNextTaskResolver(resolve: (output: Output) => Task<unknown>): void {
-		this._resolveNextTask = resolve;
+	next(task: TaskNode<Output>): void;
+	next(resolve: (output: Output) => Task<unknown>): void;
+	next(
+		taskOrResolver: TaskNode<Output> | ((output: Output) => Task<unknown>),
+	): void {
+		if ("next" in taskOrResolver) {
+			this._resolveNextTask = (output) => taskOrResolver.start(output);
+			return;
+		}
+		this._resolveNextTask = taskOrResolver;
 	}
 	// @internal
 	resolveNextTask(output: Output): Task<unknown> {
@@ -84,12 +68,12 @@ export class TaskGraphExecutor {
 		this.executable = initialTask;
 	}
 	execute() {
-		const result = this.executable.execute();
-		if (result.status === "completed") {
-			const output = result.output;
+		const result = this.executable.executor.next();
+		if (result.done) {
+			const output = result.value;
 			const nextExecutable =
 				// Output type compatibility is guaranteed by task chaining typing.
-				this.executable.node.resolveNextTask(output);
+				(this.executable.node as Internal_TaskNode).resolveNextTask(output);
 			this.executable = nextExecutable;
 		}
 	}

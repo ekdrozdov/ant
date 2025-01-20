@@ -1,12 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import {
-	TaskGraphExecutor,
-	type TaskNode,
-	createTaskNode,
-	createTaskResultFrom,
-	pendingTaskResult,
-} from "./task";
+import { TaskGraphExecutor, type TaskNode, task } from "./task";
 
 /**
  * Test task graph:
@@ -42,35 +36,25 @@ function createResulableCompositeTask(executionScriptLog: string[]): {
 		executionStepsCount: 0,
 	};
 
-	const subtask1 = createTaskNode<number, void>((input) => {
+	const subtask1 = task(function* (input: number) {
 		executionScriptLog.push("initializing subtask1");
 		executionScriptLog.push(`subtask1 input: ${input}`);
-		return () => {
-			context.executionStepsCount++;
-			return createTaskResultFrom(undefined);
-		};
+		context.executionStepsCount++;
 	});
-	const subtask2 = createTaskNode<void, void>(() => {
+	const subtask2 = task(function* () {
 		executionScriptLog.push("initializing subtask2");
-		return () => {
-			context.executionStepsCount++;
-			return createTaskResultFrom(undefined);
-		};
+		context.executionStepsCount++;
 	});
 
-	const subtask3 = createTaskNode<void, number>(() => {
+	const subtask3 = task<void, number>(function* () {
 		executionScriptLog.push("initializing subtask3");
-		return () => {
-			context.executionStepsCount++;
-			executionScriptLog.push(
-				`subtask3 output: ${context.executionStepsCount}`,
-			);
-			return createTaskResultFrom(context.executionStepsCount);
-		};
+		context.executionStepsCount++;
+		executionScriptLog.push(`subtask3 output: ${context.executionStepsCount}`);
+		return context.executionStepsCount;
 	});
 
-	subtask1.setNextTaskResolver((out) => subtask2.createTask(out));
-	subtask2.setNextTaskResolver(() => subtask3.createTask());
+	subtask1.next((out) => subtask2.start(out));
+	subtask2.next(() => subtask3.start());
 
 	return {
 		root: subtask1,
@@ -90,63 +74,48 @@ describe("task graph executor", () => {
 
 		const terminateAfterMultistepCount = 3;
 
-		const multistepTask = createTaskNode<void, void>(() => {
+		const multistepTask = task(function* () {
 			context.executionScriptLog.push("initializing multistepTask");
 			context.multistepTaskVisitCount++;
 			let stepsLeft = 2;
-			return () => {
-				stepsLeft--;
-				if (stepsLeft > 0) {
-					return pendingTaskResult;
-				}
-				return createTaskResultFrom(undefined);
-			};
+			stepsLeft--;
+			if (stepsLeft > 0) {
+				yield;
+			}
 		});
 
-		const manyOutputsTask = createTaskNode<number, "even" | "odd">((input) => {
+		const manyOutputsTask = task<number, "even" | "odd">(function* (input) {
 			context.executionScriptLog.push("initializing manyOutsTask");
-			let checkPhase = true;
-			return () => {
-				if (checkPhase) {
-					checkPhase = false;
-					return pendingTaskResult;
-				}
-				return input % 2 === 0
-					? createTaskResultFrom("even")
-					: createTaskResultFrom("odd");
-			};
+			return input % 2 === 0 ? "even" : "odd";
 		});
 
 		const compositeTask = createResulableCompositeTask(
 			context.executionScriptLog,
 		);
 
-		const afterCompositeTask = createTaskNode<number, void>((input) => {
+		const afterCompositeTask = task<number>(function* (input) {
 			context.executionScriptLog.push("initializing afterCompositeTask");
-			return () => {
-				context.executionScriptLog.push(`afterCompositeTask input: ${input}`);
-				return createTaskResultFrom(undefined);
-			};
+			context.executionScriptLog.push(`afterCompositeTask input: ${input}`);
 		});
 
-		multistepTask.setNextTaskResolver(() => {
-			return manyOutputsTask.createTask(context.multistepTaskVisitCount);
+		multistepTask.next(() => {
+			return manyOutputsTask.start(context.multistepTaskVisitCount);
 		});
 
-		manyOutputsTask.setNextTaskResolver((output) => {
+		manyOutputsTask.next((output) => {
 			return output === "even"
-				? multistepTask.createTask()
-				: compositeTask.root.createTask(2);
+				? multistepTask.start()
+				: compositeTask.root.start(2);
 		});
-		compositeTask.terminal.setNextTaskResolver((output) => {
-			return afterCompositeTask.createTask(output);
-		});
-
-		afterCompositeTask.setNextTaskResolver(() => {
-			return multistepTask.createTask();
+		compositeTask.terminal.next((output) => {
+			return afterCompositeTask.start(output);
 		});
 
-		const executor = new TaskGraphExecutor(multistepTask.createTask());
+		afterCompositeTask.next(() => {
+			return multistepTask.start();
+		});
+
+		const executor = new TaskGraphExecutor(multistepTask.start());
 
 		while (context.multistepTaskVisitCount < terminateAfterMultistepCount) {
 			executor.execute();
@@ -169,12 +138,8 @@ describe("task graph executor", () => {
 	});
 
 	it("throws when task graph is not cyclic", () => {
-		const orphanTask = createTaskNode<void, void>(() => {
-			return () => {
-				return createTaskResultFrom(undefined);
-			};
-		});
-		const executor = new TaskGraphExecutor(orphanTask.createTask());
+		const orphanTask = task(function* () {});
+		const executor = new TaskGraphExecutor(orphanTask.start());
 		assert.throws(
 			() => {
 				executor.execute();
