@@ -1,4 +1,5 @@
 import { RenderableBase } from "../../renderer/renderable";
+import type { ConstructorType } from "../../utils/class";
 import { EventEmitter } from "../../utils/events";
 import { PI_2, distance, rotationOf } from "../../utils/math";
 import { config } from "../config";
@@ -41,8 +42,11 @@ export interface Ant {
 	isWithinInteractionRange(target: SceneObject): boolean;
 	stop(): void;
 	eat(source: FoodSourceObject): void;
-	getVisibleObjects(): readonly SceneObject[];
-	getVisibleObjectsInfront(): readonly SceneObject[];
+	getVisibleObjects(): SceneObject[];
+	getVisibleObjects<T extends SceneObject>(
+		targetClass: ConstructorType<T>,
+	): T[];
+	getVisibleObjectsInfront(): SceneObject[];
 	distanceTo(target: SceneObject): number;
 }
 
@@ -106,11 +110,11 @@ export class AntBase
 		return isWithinInteractionRange(this, target);
 	}
 	stop(): void {
-		console.log('stopped')
+		console.log("stopped");
 		this.state = "idle";
 	}
 	eat(source: FoodSourceObject): void {
-		console.log('eating')
+		console.log("eating");
 		assertWithinInteractionRange(this, source);
 		transferResource(
 			source.food,
@@ -118,10 +122,22 @@ export class AntBase
 			config.antFoodConsumptionPerSecond,
 		);
 	}
-	getVisibleObjects(): readonly SceneObject[] {
-		return this.world.scene.findObjectsInRadius(this, config.antVisionDistance);
+	getVisibleObjects<T extends SceneObject>(
+		targetClass: ConstructorType<T>,
+	): T[];
+	getVisibleObjects(): SceneObject[];
+	getVisibleObjects<T extends SceneObject>(
+		targetClass?: ConstructorType<T>,
+	): T[] | SceneObject[] {
+		const visibleObjects = this.world.scene.findObjectsInRadius(
+			this,
+			config.antVisionDistance,
+		);
+		return targetClass
+			? visibleObjects.filter((o) => o instanceof targetClass)
+			: visibleObjects;
 	}
-	getVisibleObjectsInfront(): readonly SceneObject[] {
+	getVisibleObjectsInfront(): SceneObject[] {
 		return this.world.scene
 			.findObjectsInRadius(this, config.antVisionDistance)
 			.filter((obj) => {

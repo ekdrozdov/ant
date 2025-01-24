@@ -1,4 +1,5 @@
 import type { Renderable, Vector2d } from "../../renderer/renderable";
+import type { ConstructorType } from "../../utils/class";
 import { type Event, EventEmitter } from "../../utils/events";
 import { type Disposable, DisposableStorage } from "../../utils/lifecycle";
 import { distance } from "../../utils/math";
@@ -67,12 +68,12 @@ export interface Scene {
 	updateBatch(dt: number): void;
 	all(): readonly SceneObject[];
 	all<T extends SceneObject>(
-		_class: new (...args: unknown[]) => T,
-	): readonly T[];
+		targetClass: new (...args: unknown[]) => T,
+	): T[];
 	findObjectsInRadius(
 		center: SceneObject,
 		radius: number,
-	): readonly SceneObject[];
+	): SceneObject[];
 }
 
 export class SceneBase implements Scene {
@@ -143,20 +144,18 @@ export class SceneBase implements Scene {
 	}
 
 	all(): readonly SceneObject[];
+	all<T extends SceneObject>(targetClass: ConstructorType<T>): T[];
 	all<T extends SceneObject>(
-		_class: new (...args: unknown[]) => T,
-	): readonly T[];
-	all<T extends SceneObject>(
-		_class?: new () => T,
-	): readonly T[] | readonly SceneObject[] {
-		if (!_class) return this._objs;
-		return this._objs.filter((obj) => obj instanceof _class);
+		targetClass?: ConstructorType<T>,
+	): T[] | SceneObject[] {
+		if (!targetClass) return this._objs;
+		return this._objs.filter((obj) => obj instanceof targetClass);
 	}
 
 	findObjectsInRadius(
 		center: SceneObject,
 		radius: number,
-	): readonly SceneObject[] {
+	):  SceneObject[] {
 		return this.indexer
 			.allInRadius(center.renderable.position, radius)
 			.filter(

@@ -1,6 +1,3 @@
-import { PI } from "../../utils/math";
-import {} from "../scene/scene";
-
 export interface Agent {
 	execute(): void;
 }
@@ -26,5 +23,3 @@ class AgentRegistry {
 }
 
 export const agentRegistry = new AgentRegistry();
-
-export const NOISE_ROTATION = PI / 8;
