@@ -8,16 +8,6 @@ task system
 
 scene serialization
 
-in-game ui
-  framework
-    pixilayout/pixiui
-      add Screen feature, add GameScreen
-      add Window feature, add TimeWindow
-  world editing
-    spawn mode
-    remove mode
-    entity selector
-
 world map generation
   topography
   resources

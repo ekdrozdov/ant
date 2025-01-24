@@ -173,7 +173,6 @@ function createScanTaskGraph<Target extends SceneObject>(
 	ant: Ant,
 	targetClass: ConstructorType<Target>,
 ): TaskGraph<void, Path> {
-	//#region Scan task context.
 	const pathMaxDistance =
 		(config.antFoodLowAmount / config.antFoodDepletionPerMinute) *
 		config.antVelocity *
@@ -185,7 +184,6 @@ function createScanTaskGraph<Target extends SceneObject>(
 		pathDistance: 0,
 	};
 
-	// biome-ignore lint/correctness/useYield: <explanation>
 	const initPathTask = task(function* () {
 		context.path = new PathImpl();
 		context.pathDistance = 0;
@@ -207,11 +205,9 @@ function createScanTaskGraph<Target extends SceneObject>(
 	const eatAtHomeTaskGraph = createEatAtHomeTaskGraph(ant);
 	const recoverScanPositionTask = task(reachEndOfPath);
 
-	// biome-ignore lint/correctness/useYield: <explanation>
 	const terminalTask = task(function* () {
 		return context.path;
 	});
-	//#endregion
 
 	initPathTask.next(lookupTask);
 
