@@ -2,6 +2,7 @@ import { RenderableBase } from "../../renderer/renderable";
 import type { ConstructorType } from "../../utils/class";
 import { EventEmitter } from "../../utils/events";
 import { PI_2, distance, rotationOf } from "../../utils/math";
+import type { Trail } from "../agent/task/trail";
 import { config } from "../config";
 import {
 	type DynamicSceneObject,
@@ -26,12 +27,17 @@ function getId() {
 	return id++;
 }
 
+type Pocket = {
+	food: FoodResource;
+};
+
 export interface Ant {
 	readonly id: number;
 	state: "move" | "idle";
 	food: FoodResource;
+	pocket: Pocket;
 	readonly home: Building;
-	mark(attracting?: boolean): Mark;
+	mark(trail: Trail, attracting?: boolean): Mark;
 	move(): void;
 	/**
 	 * Rotate unit clockwise.
@@ -48,6 +54,8 @@ export interface Ant {
 	): T[];
 	getVisibleObjectsInfront(): SceneObject[];
 	distanceTo(target: SceneObject): number;
+	grab(target: FoodSourceObject): void;
+	store(target: FoodSourceObject): void;
 }
 
 export class AntBase
@@ -57,6 +65,7 @@ export class AntBase
 	kind = "dynamic" as const;
 	state: "move" | "idle" = "idle";
 	food = new FoodResource(100);
+	pocket: Pocket = { food: new FoodResource() };
 	velocity = config.antVelocity;
 	private readonly visibilityHalfAngle = Math.PI / 2;
 	protected readonly world: World;
@@ -80,14 +89,23 @@ export class AntBase
 			}),
 		);
 	}
-	mark(attracting = false): Mark {
-		const mark = new Mark(this.id, attracting);
+	store(target: FoodSourceObject): void {
+		assertWithinInteractionRange(this, target);
+		transferResource(this.pocket.food, target.food, this.pocket.food.amount);
+		this.home.storage;
+	}
+	grab(target: FoodSourceObject): void {
+		assertWithinInteractionRange(this, target);
+		transferResource(target.food, this.pocket.food, config.antCarryCapacity);
+		console.debug(`Ant ${this.id} grabbed food`);
+	}
+	mark(trail: Trail, attracting = false): Mark {
+		const mark = new Mark(this.id, attracting, trail);
 		mark.renderable.position = this.renderable.position;
 		this.world.scene.mount(mark);
 		return mark;
 	}
 	move(): void {
-		console.log("moving");
 		this.state = "move";
 	}
 	rotate(radians: number): void {
@@ -110,11 +128,9 @@ export class AntBase
 		return isWithinInteractionRange(this, target);
 	}
 	stop(): void {
-		console.log("stopped");
 		this.state = "idle";
 	}
 	eat(source: FoodSourceObject): void {
-		console.log("eating");
 		assertWithinInteractionRange(this, source);
 		transferResource(
 			source.food,

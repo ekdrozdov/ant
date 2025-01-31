@@ -2,6 +2,10 @@ import { config } from "../../config";
 import type { Ant } from "../../object/ant";
 import { Mark, isMark } from "../../object/mark";
 
+/**
+ * Assuming an ant remembers his own path, this is a util
+ * to navigate ant back and forth the path.
+ */
 export interface Trail {
 	readonly id: number;
 	append(mark: Mark): void;
@@ -80,8 +84,8 @@ export type NavigationContext = {
 };
 
 export function* extendTrail(input: NavigationContext): Generator<void, Trail> {
-	const { ant, trail: path } = input;
-	const visibleClosesToEndPathMark = path.findClosestToEnd(
+	const { ant, trail } = input;
+	const visibleClosesToEndPathMark = trail.findClosestToEnd(
 		ant.getVisibleObjects().filter(isMark),
 	);
 	console.debug(`${ant.id} extendPath`);
@@ -98,8 +102,8 @@ export function* extendTrail(input: NavigationContext): Generator<void, Trail> {
 		yield;
 	}
 	ant.stop();
-	path.append(ant.mark());
-	return path;
+	trail.append(ant.mark(trail));
+	return trail;
 }
 
 export function* reachStartOfTrail(

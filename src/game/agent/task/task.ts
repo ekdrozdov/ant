@@ -1,8 +1,8 @@
 export interface TaskNode<Input = unknown, Output = unknown> {
-		start(input: Input): Task<Output>;
-		next(resolve: (output: Output) => Task<unknown>): void;
-		next(task: TaskNode<Output> | TaskNode<void>): void;
-	}
+	start(input: Input): Task<Output>;
+	next(resolve: (output: Output) => Task<unknown>): void;
+	next(task: TaskNode<Output> | TaskNode<void>): void;
+}
 
 interface Internal_TaskNode<Input = unknown, Output = unknown>
 	extends TaskNode<Input, Output> {

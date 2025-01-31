@@ -34,7 +34,7 @@ function createScanTaskGraph<Target extends SceneObject>(
 	const initTrailTask = task(function* () {
 		context.trail = new TrailImpl();
 		context.trailDistance = 0;
-		context.trail.append(context.ant.mark());
+		context.trail.append(context.ant.mark(context.trail));
 	});
 
 	const lookupTask = task(function* () {

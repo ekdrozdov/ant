@@ -17,5 +17,7 @@ export const config = {
 	antFoodLowAmount: 20,
 	antFoodMaxAmount: 100,
 	antVisionDistance,
-	antNoiseRotationAmount: PI / 8
+	antNoiseRotationAmount: PI / 8,
+	antJoblessRoamingMaxDistance: 20,
+	antCarryCapacity: 50,
 } as const;

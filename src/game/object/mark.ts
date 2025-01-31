@@ -1,4 +1,5 @@
 import { RenderableBase } from "../../renderer/renderable";
+import type { Trail } from "../agent/task/trail";
 import { SceneObjectImpl, type StaticSceneObject } from "../scene/scene";
 
 export class Mark extends SceneObjectImpl implements StaticSceneObject {
@@ -6,6 +7,7 @@ export class Mark extends SceneObjectImpl implements StaticSceneObject {
 	constructor(
 		readonly id: number,
 		readonly attracting: boolean,
+		readonly trail: Trail,
 	) {
 		super(new RenderableBase({ kind: "mark" }));
 	}

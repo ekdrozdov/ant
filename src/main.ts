@@ -1,5 +1,6 @@
 import { agentRegistry } from "./game/agent/agent";
 import { Scout } from "./game/agent/scout";
+import { Worker } from "./game/agent/worker";
 import { AntBase } from "./game/object/ant";
 import { LivingChamber } from "./game/object/buildings";
 import { WorldBase, initWorld } from "./game/world";
@@ -18,23 +19,34 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 
 	const chamber = new LivingChamber();
 	chamber.renderable.position = { x: 5010, y: 5010 };
-	// TODO: objects nesting with position relative to parent, 
+	// TODO: objects nesting with position relative to parent,
 	// absolute position updated automatically.
 	chamber.storage.renderable.position = chamber.renderable.position;
 	chamber.storage.food.amount = 500;
 	world.scene.mount(chamber);
 	// TODO: also nested objects must be mounted/dismounted recursively.
-	world.scene.mount(chamber.storage)
+	world.scene.mount(chamber.storage);
 
 	for (const _ of Array.from(new Array(1))) {
 		const ant = new AntBase(chamber);
-		ant.food.amount = 25;
 		const scout = new Scout(ant);
 		ant.renderable.position = { x: 5000, y: 5000 };
 		world.scene.mount(ant);
 		agentRegistry.register(scout);
 		ant.onDead(() => {
 			agentRegistry.unregister(scout);
+			world.scene.dismount(ant);
+		});
+	}
+
+	for (const _ of Array.from(new Array(1))) {
+		const ant = new AntBase(chamber);
+		const worker = new Worker(ant);
+		ant.renderable.position = { x: 5000, y: 5000 };
+		world.scene.mount(ant);
+		agentRegistry.register(worker);
+		ant.onDead(() => {
+			agentRegistry.unregister(worker);
 			world.scene.dismount(ant);
 		});
 	}
