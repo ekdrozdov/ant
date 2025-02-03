@@ -1,6 +1,7 @@
 import type { ConstructorType } from "../../utils/class";
 import { config } from "../config";
 import type { Ant } from "../object/ant";
+import { Mark } from "../object/mark";
 import { FoodSourceObject } from "../object/resource";
 import type { SceneObject } from "../scene/scene";
 import type { Agent } from "./agent";
@@ -49,7 +50,7 @@ function createScanTaskGraph<Target extends SceneObject>(
 	const enterInteractionRangeTask = task(enterInteractionRange<Target>);
 	const resetScanTask = task(reachStartOfTrail);
 
-	const eatAtHomeTaskGraph = createEatAtHomeTaskGraph(ant);
+	const eatAtHomeTaskGraph = createEatAtHomeTaskGraph();
 	const recoverScanPositionTask = task(reachEndOfTrail);
 
 	const terminalTask = task(function* () {
@@ -102,14 +103,73 @@ function createPatrolTrailTaskGraph(): TaskGraph<
 > {
 	const reachEndOfTrailTask = task(reachEndOfTrail);
 	const reachStartOfTrailTask = task(reachStartOfTrail);
-	// TODO: eat at home when food amount is low.
+	const eatAtHomeTaskGraph = createEatAtHomeTaskGraph();
+	const terminal = task(reachStartOfTrail);
+
+	let context: NavigationContext | undefined;
 
 	reachEndOfTrailTask.next(reachStartOfTrailTask);
-	reachStartOfTrailTask.next(reachEndOfTrailTask);
+	reachStartOfTrailTask.next((input) => {
+		if (input.ant.food.amount < config.antFoodLowAmount) {
+			context = input;
+			eatAtHomeTaskGraph.root.start(input);
+		}
+		return reachEndOfTrailTask.start(input);
+	});
+	eatAtHomeTaskGraph.terminal.next(() => {
+		if (!context) {
+			throw new Error("Context read before assigned.");
+		}
+		return reachEndOfTrailTask.start(context);
+	});
+
+	// TODO: proceed to terminal task if there is no food left.
 
 	return {
 		root: reachEndOfTrailTask,
-		terminal: reachStartOfTrailTask,
+		terminal,
+	};
+}
+
+function createActivateTrailTaskGraph(): TaskGraph<
+	NavigationContext,
+	NavigationContext
+> {
+	const reachEndOfTrailTask = task(reachEndOfTrail);
+
+	// TODO: add task decorators to improve reuse of tasks:
+	// when defined the decorator is executed within a task on certain input.
+	const activateTrailUntilStartTask = task(function* (
+		input: NavigationContext,
+	) {
+		const { ant, trail } = input;
+		console.debug(`${ant.id} activateTrailUntilStartTask`);
+		while (true) {
+			const marks = ant.getVisibleObjects(Mark);
+			// Activate all visible marks along the way.
+			for (const mark of marks) {
+				mark.attracting = true;
+			}
+			const closest = trail.findClosestToStart(marks);
+			if (ant.distanceTo(closest) < config.interactionDistance) {
+				// Already reach the start -> complete.
+				ant.stop();
+				return input;
+			}
+			ant.face(closest);
+			// TODO: add move options with max distance to prevent overreach of the move target.
+			ant.move();
+			yield;
+		}
+	});
+
+	reachEndOfTrailTask.next((input) => {
+		return activateTrailUntilStartTask.start(input);
+	});
+
+	return {
+		root: reachEndOfTrailTask,
+		terminal: activateTrailUntilStartTask,
 	};
 }
 
@@ -118,10 +178,15 @@ export class Scout implements Agent {
 
 	constructor(private readonly ant: Ant) {
 		const scanTaskGraph = createScanTaskGraph(this.ant, FoodSourceObject);
+		const activateTrailUntilStartTaskGraph = createActivateTrailTaskGraph();
 		const patrolTrailTaskGraph = createPatrolTrailTaskGraph();
+
 		scanTaskGraph.terminal.next((trail) =>
-			patrolTrailTaskGraph.root.start({ ant, trail: trail }),
+			activateTrailUntilStartTaskGraph.root.start({ ant, trail: trail }),
 		);
+		activateTrailUntilStartTaskGraph.terminal.next(patrolTrailTaskGraph.root);
+		patrolTrailTaskGraph.terminal.next(scanTaskGraph.root);
+
 		this.executor = new TaskGraphExecutor(scanTaskGraph.root.start());
 	}
 

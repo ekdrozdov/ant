@@ -14,9 +14,7 @@ export function* eat(input: { ant: Ant; target: FoodSourceObject }) {
 		yield;
 	}
 }
-export function createEatAtHomeTaskGraph(
-	ant: Ant,
-): TaskGraph<NavigationContext, void> {
+export function createEatAtHomeTaskGraph(): TaskGraph<NavigationContext, void> {
 	const reachStartOfTrailTask = task(reachStartOfTrail);
 	const waitForFoodTask = task(waitForFood);
 	const enterInteractionRangeTask = task(
@@ -24,13 +22,28 @@ export function createEatAtHomeTaskGraph(
 	);
 	const eatTask = task(eat);
 
-	reachStartOfTrailTask.next(waitForFoodTask);
-	waitForFoodTask.next((availableFood) =>
-		enterInteractionRangeTask.start({ ant, target: availableFood }),
-	);
-	enterInteractionRangeTask.next((interactibleFood) =>
-		eatTask.start({ ant, target: interactibleFood }),
-	);
+	let context: NavigationContext | undefined;
+
+	reachStartOfTrailTask.next((input) => {
+		context = input;
+		return waitForFoodTask.start(input);
+	});
+	waitForFoodTask.next((availableFood) => {
+		// TODO: would be nice to refine waitForFoodTask context with `ant` prop.
+		if (!context) {
+			throw new Error("Context read before assigned.");
+		}
+		return enterInteractionRangeTask.start({
+			ant: context.ant,
+			target: availableFood,
+		});
+	});
+	enterInteractionRangeTask.next((interactibleFood) => {
+				if (!context) {
+					throw new Error("Context read before assigned.");
+				}
+				return eatTask.start({ ant: context.ant, target: interactibleFood });
+	});
 
 	return {
 		root: reachStartOfTrailTask,

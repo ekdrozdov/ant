@@ -116,7 +116,7 @@ export function* reachStartOfTrail(
 		const closest = trail.findClosestToStart(marks);
 		if (ant.distanceTo(closest) < config.interactionDistance) {
 			// TODO: add interaction range to enable mark lifetime refresh.
-			// Already reach the end -> complete.
+			// Already reach the start -> complete.
 			ant.stop();
 			return input;
 		}

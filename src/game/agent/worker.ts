@@ -3,6 +3,7 @@ import type { Ant } from "../object/ant";
 import { Mark } from "../object/mark";
 import { FoodSourceObject } from "../object/resource";
 import type { Agent } from "./agent";
+import { enterInteractionRange } from "./task/interaction";
 import { type TaskGraph, TaskGraphExecutor, task } from "./task/task";
 import {
 	type NavigationContext,
@@ -11,17 +12,18 @@ import {
 	reachStartOfTrail,
 } from "./task/trail";
 
-interface HaulJob {
+interface TrailContext {
 	trail: Trail;
+	ant: Ant;
 }
 
 // Engages into pheromone trails by chance.
-function* findJob(input: { ant: Ant }): Generator<void, HaulJob> {
+function* findJob(input: { ant: Ant }): Generator<void, TrailContext> {
 	const { ant } = input;
 	while (true) {
 		const mark = ant.getVisibleObjects(Mark).filter((m) => m.attracting)[0];
 		if (mark) {
-			return { trail: mark.trail };
+			return { trail: mark.trail, ant };
 		}
 
 		if (ant.distanceTo(ant.home) >= config.antJoblessRoamingMaxDistance) {
@@ -45,11 +47,16 @@ function* findJob(input: { ant: Ant }): Generator<void, HaulJob> {
 	}
 }
 
-function createMineGraph(): TaskGraph<NavigationContext, unknown> {
+function createMineTaskGraph(): TaskGraph<
+	NavigationContext,
+	NavigationContext
+> {
 	let foodLeft = 1;
 
 	const goToMine = task(reachEndOfTrail);
+	const enterMine = task(enterInteractionRange<FoodSourceObject>);
 	const goToHome = task(reachStartOfTrail);
+	const enterHome = task(enterInteractionRange<FoodSourceObject>);
 	const terminal = task(reachStartOfTrail);
 
 	const load = task(function* (
@@ -65,19 +72,41 @@ function createMineGraph(): TaskGraph<NavigationContext, unknown> {
 		return input;
 	});
 
-	goToMine.next((out) => {
-		const food = out.ant.getVisibleObjects(FoodSourceObject)[0];
+	let context: undefined | (NavigationContext & { food: FoodSourceObject });
+
+	goToMine.next((input) => {
+		const food = input.ant.getVisibleObjects(FoodSourceObject)[0];
 		if (!food) {
-			return terminal.start(out);
+			return terminal.start(input);
 		}
-		return load.start({ ...out, food });
+		context = {
+			ant: input.ant,
+			trail: input.trail,
+			food,
+		};
+		return enterMine.start({ ant: input.ant, target: food });
 	});
 
-	load.next((out) => {
-		return goToHome.start(out);
+	enterMine.next(() => {
+		if (!context) {
+			throw new Error("Context read before assigned.");
+		}
+		return load.start(context);
+	});
+	load.next(goToHome);
+	goToHome.next((input) => {
+		return enterHome.start({ ant: input.ant, target: input.ant.home.storage });
 	});
 
-	goToHome.next(unload);
+	enterHome.next(() => {
+		if (!context) {
+			throw new Error("Context read before assigned.");
+		}
+		return unload.start({
+			ant: context.ant,
+			trail: context.trail,
+		});
+	});
 
 	unload.next((input) => {
 		if (foodLeft === 0) {
@@ -97,10 +126,11 @@ export class Worker implements Agent {
 
 	constructor(private readonly ant: Ant) {
 		const findJobTask = task(findJob);
-		const mineGraph = createMineGraph();
+		const mineTaskGraph = createMineTaskGraph();
 
-		findJobTask.next(mineGraph.root);
-		mineGraph.terminal.next(findJobTask);
+		// TODO: must be a compilation error.
+		findJobTask.next(mineTaskGraph.root);
+		mineTaskGraph.terminal.next(findJobTask);
 
 		// TODO: eat sometimes hehe.
 

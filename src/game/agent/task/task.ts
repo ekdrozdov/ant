@@ -1,7 +1,11 @@
 export interface TaskNode<Input = unknown, Output = unknown> {
 	start(input: Input): Task<Output>;
 	next(resolve: (output: Output) => Task<unknown>): void;
-	next(task: TaskNode<Output> | TaskNode<void>): void;
+	next(
+		task:
+			| { start: (input: Output) => Task<unknown> }
+			| { start: () => Task<unknown> },
+	): void;
 }
 
 interface Internal_TaskNode<Input = unknown, Output = unknown>
@@ -41,12 +45,22 @@ class TaskNodeImpl<Input, Output> implements TaskNode<Input, Output> {
 			executor,
 		};
 	}
-	next(task: TaskNode<Output>): void;
+	next(
+		task:
+			| { start: (input: Output) => Task<unknown> }
+			| { start: () => Task<unknown> },
+	): void;
 	next(resolve: (output: Output) => Task<unknown>): void;
 	next(
-		taskOrResolver: TaskNode<Output> | ((output: Output) => Task<unknown>),
+		taskOrResolver:
+			| { start: (input: Output) => Task<unknown> }
+			| { start: () => Task<unknown> }
+			| ((output: Output) => Task<unknown>),
 	): void {
-		if ("next" in taskOrResolver) {
+		if (this._resolveNextTask) {
+			throw new Error("Next task is already assigned.")
+		}
+		if ("start" in taskOrResolver) {
 			this._resolveNextTask = (output) => taskOrResolver.start(output);
 			return;
 		}

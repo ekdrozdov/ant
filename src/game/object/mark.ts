@@ -6,7 +6,7 @@ export class Mark extends SceneObjectImpl implements StaticSceneObject {
 	readonly kind = "static";
 	constructor(
 		readonly id: number,
-		readonly attracting: boolean,
+		public attracting: boolean,
 		readonly trail: Trail,
 	) {
 		super(new RenderableBase({ kind: "mark" }));
