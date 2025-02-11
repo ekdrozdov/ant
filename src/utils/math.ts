@@ -34,3 +34,7 @@ export function rotationOf(position: Vector2d) {
 	}
 	return rotation;
 }
+
+export function translate(position: Vector2d, x: number, y: number): Vector2d {
+	return { x: position.x + x, y: position.y + y };
+}

@@ -20,4 +20,8 @@ export const config = {
 	antNoiseRotationAmount: PI / 8,
 	antJoblessRoamingMaxDistance: 20,
 	antCarryCapacity: 50,
+	antSensitivityDistance: 10,
+	antPheromoneMarkIntensity: 10,
+
+	pheromoneDecayPerMinute: 10,
 } as const;

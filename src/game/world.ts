@@ -21,10 +21,6 @@ export class WorldBase implements World {
 	}
 }
 
-export function estimateLocalFood(point: Vector2d, radius: number): number {
-	return 10;
-} // setTimeout(() => world.clock.setFreq(300), 3000)
-
 let _world: World;
 
 export function initWorld(world: World) {
