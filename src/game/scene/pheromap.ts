@@ -21,6 +21,17 @@ export const pheromoneIndexToDirection = [
 	"north-west",
 ] as const;
 
+type Sector = {
+	start: number;
+	end: number;
+	center: number;
+}
+
+// todo: define sectors in radians(?)
+export const pheromoneIndexToSector = [
+	{start: 0, end: 30, center: 15}
+] satisfies Sector[];
+
 /**
  * Stores pheromone data.
  */

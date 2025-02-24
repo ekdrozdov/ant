@@ -4,6 +4,7 @@ import { EventEmitter } from "../../utils/events";
 import { PI_2, distance, rotationOf } from "../../utils/math";
 import type { Trail } from "../agent/task/trail";
 import { config } from "../config";
+import type { Direction } from "../scene/pheromap";
 import {
 	type DynamicSceneObject,
 	type SceneObject,
@@ -54,6 +55,8 @@ export interface Ant {
 		targetClass: ConstructorType<T>,
 	): T[];
 	getVisibleObjectsInfront(): SceneObject[];
+	getSurroundingPheromones(): number[];
+	getPheromonesDownTheWay(): number[];
 	distanceTo(target: SceneObject): number;
 	grab(target: FoodSourceObject): void;
 	store(target: FoodSourceObject): void;
@@ -166,6 +169,19 @@ export class AntBase extends SceneObjectImpl implements Ant, DynamicSceneObject 
 						this.visibilityHalfAngle
 					);
 				});
+		}
+		getSurroundingPheromones(): number[] {
+			return this.world.scene.pheromap.readSurroundingPheromonesAt(
+				this.renderable.position,
+			);
+		}
+		getPheromonesDownTheWay(): number[] {
+			const ps = this.world.scene.pheromap.readSurroundingPheromonesAt(
+				this.renderable.position,
+			);
+			// figure out a sector corresponding to the movement
+
+			return ps;
 		}
 		distanceTo(target: SceneObjectBase): number {
 			return distance(this.renderable.position, target.renderable.position);
