@@ -13,6 +13,10 @@ interface Internal_TaskNode<Input = unknown, Output = unknown>
 	resolveNextTask(output: Output): Task<unknown>;
 }
 
+// TODO: add task decorators to improve reuse of tasks:
+// when defined the decorator is executed within a task on certain input.
+// Decorators should be like lifecycle hooks:
+// beforeStarted(in), afterCompleted(out), beforeContinue(ctx)
 interface Task<Output> {
 	readonly node: TaskNode<unknown, Output>;
 	readonly executor: IterableIterator<void, Output>;
@@ -58,7 +62,7 @@ class TaskNodeImpl<Input, Output> implements TaskNode<Input, Output> {
 			| ((output: Output) => Task<unknown>),
 	): void {
 		if (this._resolveNextTask) {
-			throw new Error("Next task is already assigned.")
+			throw new Error("Next task is already assigned.");
 		}
 		if ("start" in taskOrResolver) {
 			this._resolveNextTask = (output) => taskOrResolver.start(output);

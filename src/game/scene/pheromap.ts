@@ -1,4 +1,5 @@
 import type { Vector2d } from "../../renderer/renderable";
+import { PI, withinSector } from "../../utils/math";
 
 export type Direction =
 	| "north"
@@ -19,6 +20,29 @@ export const pheromoneIndexToDirection = [
 	"south-west",
 	"west",
 	"north-west",
+] as const;
+
+export type PheroDirection = {
+	/**
+	 * Angle relative to unit circle.
+	 */
+	angle: number;
+	value: number;
+};
+
+export function filterDirections(start: number, end: number, directions: PheroDirection[]) {
+	return directions.filter(direciton => withinSector(direciton.angle, start, end))
+}
+
+const directionToAngle = [
+	PI / 2,
+	(3 * PI) / 4,
+	PI,
+	(5 * PI) / 4,
+	(3 * PI) / 2,
+	(7 * PI) / 4,
+	0,
+	PI / 4,
 ] as const;
 
 /**

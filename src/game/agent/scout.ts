@@ -108,8 +108,12 @@ function createPatrolTrailTaskGraph(): TaskGraph<
 
 	let context: NavigationContext | undefined;
 
-	reachEndOfTrailTask.next(reachStartOfTrailTask);
+	reachEndOfTrailTask.next((input) => {
+		input.ant.emittingFoodPheromone = true;
+		return reachStartOfTrailTask.start(input)
+	});
 	reachStartOfTrailTask.next((input) => {
+		input.ant.emittingFoodPheromone = false;
 		if (input.ant.food.amount < config.antFoodLowAmount) {
 			context = input;
 			eatAtHomeTaskGraph.root.start(input);

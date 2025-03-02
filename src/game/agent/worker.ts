@@ -2,6 +2,7 @@ import { config } from "../config";
 import type { Ant } from "../object/ant";
 import { Mark } from "../object/mark";
 import { FoodSourceObject } from "../object/resource";
+import { type PheroDirection, filterDirections } from "../scene/pheromap";
 import type { Agent } from "./agent";
 import { enterInteractionRange } from "./task/interaction";
 import { type TaskGraph, TaskGraphExecutor, task } from "./task/task";
@@ -20,6 +21,107 @@ interface TrailContext {
 // Engages into pheromone trails by chance.
 function* findJob(input: { ant: Ant }): Generator<void, TrailContext> {
 	const { ant } = input;
+	while (true) {
+		const mark = ant.getVisibleObjects(Mark).filter((m) => m.attracting)[0];
+		if (mark) {
+			return { trail: mark.trail, ant };
+		}
+
+		if (ant.distanceTo(ant.home) >= config.antJoblessRoamingMaxDistance) {
+			ant.face(ant.home);
+		}
+
+		if (Math.random() < 0.1) {
+			ant.rotate(
+				Math.sign(Math.random() - 0.5) * config.antNoiseRotationAmount,
+			);
+		}
+
+		if (Math.random() < 0.1) {
+			ant.stop();
+		}
+
+		if (Math.random() < 0.1) {
+			ant.move();
+		}
+		yield;
+	}
+}
+
+// direction to sector map
+
+type Sector = {
+	start: number;
+	end: number;
+};
+
+/**
+ *
+ * @param facingSector
+ * @param directions
+ * @param roll random number between 0 and 1.
+ * @returns
+ */
+function rollAttractingDireciton(
+	facingSector: Sector,
+	directions: PheroDirection[],
+	roll: number,
+) {
+	const facingDirs = filterDirections(
+		facingSector.start,
+		facingSector.end,
+		directions,
+	);
+
+	// handicap eqs to half of min mark val
+	// TODO: fine-tune.
+	const handicappedDirs = facingDirs.map((dir) =>
+		dir.value > 0
+			? dir
+			: { ...dir, value: config.antPheromoneMarkIntensity / 2 },
+	);
+
+	let pheromoneAmountSum = 0;
+	for (const dir of handicappedDirs) {
+		pheromoneAmountSum += dir.value;
+	}
+
+	// chances per direction are:
+	const weightedDirs = handicappedDirs.map((dir) => ({
+		...dir,
+		value: dir.value / pheromoneAmountSum,
+	}));
+
+	// map chances to value from 0 to 1
+	const dirsPoll = weightedDirs.sort((lhs, rhs) => lhs.value - rhs.value);
+
+	let acc = 0;
+	for (let i = 0; i < dirsPoll.length; ++i) {
+		acc += dirsPoll[i].value;
+		dirsPoll[i].value = acc;
+	}
+
+	// find a winner
+	let j = 0;
+	while (dirsPoll[j].value > roll) {
+		j++;
+	}
+
+	const winnerDir = dirsPoll[j];
+	if (winnerDir === undefined) {
+		throw new Error("Missing winner direciton, probably no direction belongs to the facing sector")
+	}
+	return winnerDir;
+
+	// face agent towards winning direction
+}
+
+function* followPheromone(input: { ant: Ant }): Generator<void, TrailContext> {
+	const { ant } = input;
+	const phs = ant.getSurroundingPheromones();
+	// build weights
+	// filter irrelevant directions
+	// choose direction by chance
 	while (true) {
 		const mark = ant.getVisibleObjects(Mark).filter((m) => m.attracting)[0];
 		if (mark) {
