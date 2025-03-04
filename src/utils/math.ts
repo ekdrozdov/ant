@@ -56,15 +56,39 @@ export function translate(position: Vector2d, x: number, y: number): Vector2d {
 
 /**
  * @param teta a point in unit circle, 0 <= teta <= 2 * PI
- * @param start a point in unit circle, 0 <= start < 2 * PI
+ * @param start a point in unit circle, - 2 * PI <= start < 2 * PI
  * @param end a point in unit circle, 0 < end <= 4 * PI
  */
-export function withinSector(
+export function insideSectorStrict(
 	teta: number,
 	start: number,
 	end: number,
 ): boolean {
-	return end <= PI_2
-		? teta >= start && teta <= end
-		: withinSector(teta, start, PI_2) || withinSector(teta, 0, end - PI_2);
+	if (end < start || teta < 0 || teta > PI_2) {
+		throw new Error(
+			`Invalid argument: sector="(${start}, ${end})" teta="${teta}"`,
+		);
+	}
+
+	if (end > PI_2) {
+		if (teta < start) {
+			return teta + PI_2 < end;
+		}
+		return true;
+	}
+
+	if (start < 0) {
+		if (teta > end) {
+			return teta - PI_2 > start;
+		}
+		return true
+	}
+
+	return teta > start && teta < end;
+
+	// return (
+	// 	(start < 0 && teta - PI_2 > start && teta < end) ||
+	// 	(end > PI_2 && teta > start && teta + PI_2 < end) ||
+	// 	(teta > start && teta < end)
+	// );
 }

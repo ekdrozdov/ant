@@ -1,5 +1,6 @@
 import type { Vector2d } from "../../renderer/renderable";
-import { PI, withinSector } from "../../utils/math";
+import { PI, insideSectorStrict } from "../../utils/math";
+import { config } from "../config";
 
 export type Direction =
 	| "north"
@@ -23,18 +24,11 @@ export const pheromoneIndexToDirection = [
 ] as const;
 
 export type PheroDirection = {
-	/**
-	 * Angle relative to unit circle.
-	 */
-	angle: number;
+	tag: DirectionTag;
 	value: number;
 };
 
-export function filterDirections(start: number, end: number, directions: PheroDirection[]) {
-	return directions.filter(direciton => withinSector(direciton.angle, start, end))
-}
-
-const directionToAngle = [
+export const directionIndexToAngle = [
 	PI / 2,
 	(3 * PI) / 4,
 	PI,
@@ -44,6 +38,97 @@ const directionToAngle = [
 	0,
 	PI / 4,
 ] as const;
+
+export const directionTagToAngle = {
+	n: PI / 2,
+	nw: (3 * PI) / 4,
+	w: PI,
+	sw: (5 * PI) / 4,
+	s: (3 * PI) / 2,
+	se: (7 * PI) / 4,
+	e: 0,
+	ne: PI / 4,
+} as const;
+
+export type DirectionTag = "n" | "nw" | "w" | "sw" | "s" | "se" | "e" | "ne";
+
+export const directionTags: DirectionTag[] = [
+	"n",
+	"nw",
+	"w",
+	"sw",
+	"s",
+	"se",
+	"e",
+	"ne",
+] as const;
+
+export function filterDirections(
+	start: number,
+	end: number,
+	directions: PheroDirection[],
+) {
+	const directionsInSector = directions.filter((direction) =>
+		insideSectorStrict(directionTagToAngle[direction.tag], start, end),
+	);
+	if (directionsInSector.length === 0) {
+		throw new Error("No directions belongs to sector");
+	}
+	return directionsInSector;
+}
+
+/**
+ * Randomly chooses a direction.
+ * @param facingSector
+ * @param directions
+ * @param roll random number between 0 and 1.
+ * @returns
+ */
+export function rollAttractingDireciton(
+	directions: PheroDirection[],
+	roll: number,
+) {
+	const handicapValue = config.antPheromoneMarkIntensity / 2;
+	const handicappedDirs = directions.map((dir) =>
+		dir.value > 0 ? dir : { ...dir, value: handicapValue },
+	);
+
+	let pheromoneAmountSum = 0;
+	for (const dir of handicappedDirs) {
+		pheromoneAmountSum += dir.value;
+	}
+
+	const chancesPerDir = handicappedDirs.map((dir) => ({
+		...dir,
+		value: dir.value / pheromoneAmountSum,
+	}));
+
+	const ascendingChancesPerDir = chancesPerDir.sort(
+		(lhs, rhs) => lhs.value - rhs.value,
+	);
+
+	let cumulativeChance = 0;
+	for (const dir of ascendingChancesPerDir) {
+		cumulativeChance += dir.value;
+		dir.value = cumulativeChance;
+	}
+
+	let winnerIndex = 0;
+	while (
+		ascendingChancesPerDir[winnerIndex].value < roll &&
+		winnerIndex < ascendingChancesPerDir.length - 1 
+	) {
+		winnerIndex++;
+	}
+
+	const winnerDir = ascendingChancesPerDir[winnerIndex];
+	if (winnerDir === undefined) {
+		throw new Error(
+			"Missing winner direciton, probably no direction belongs to the facing sector",
+		);
+	}
+	return winnerDir;
+}
 
 /**
  * Stores pheromone data.

@@ -1,7 +1,17 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { translate } from "../../utils/math";
-import { ScenePheromap, getPheromoneByDirection } from "./pheromap";
+import { PI, PI_2, translate } from "../../utils/math";
+import {
+	type PheroDirection,
+	ScenePheromap,
+	directionTagToAngle,
+	directionTags,
+	filterDirections,
+	getPheromoneByDirection,
+	rollAttractingDireciton,
+} from "./pheromap";
+
+const eps = 0.001;
 
 describe("Pheromap", () => {
 	it("update pheromones evenly", () => {
@@ -81,7 +91,7 @@ describe("Pheromap", () => {
 		endOne = translate(endOne, 2, 0);
 		startAnother = translate(startAnother, 2, 0);
 		endAnother = translate(endAnother, 2, 0);
-		
+
 		pheromap.updateBatch([startOne, startAnother], [endOne, endAnother], 10);
 
 		const pheromones = pheromap.readSurroundingPheromonesAt({
@@ -252,5 +262,191 @@ describe("Pheromap", () => {
 			),
 			0,
 		);
+	});
+});
+
+describe("filterDirections", () => {
+	it("filters out directions outside of a sector", () => {
+		const directions: PheroDirection[] = directionTags.map((tag) => ({
+			value: 10,
+			tag,
+		}));
+		const dirsWithinSector = filterDirections(
+			directionTagToAngle.n - eps,
+			directionTagToAngle.s + eps,
+			directions,
+		);
+		const tagsWithinSector = dirsWithinSector.map((d) => d.tag);
+
+		assert.equal(tagsWithinSector.includes("n"), true);
+		assert.equal(tagsWithinSector.includes("nw"), true);
+		assert.equal(tagsWithinSector.includes("w"), true);
+		assert.equal(tagsWithinSector.includes("sw"), true);
+		assert.equal(tagsWithinSector.includes("s"), true);
+
+		assert.equal(tagsWithinSector.includes("se"), false);
+		assert.equal(tagsWithinSector.includes("e"), false);
+		assert.equal(tagsWithinSector.includes("ne"), false);
+	});
+
+	it("captures clockwise directions when sector end is greater than 2 * Pi", () => {
+		const directions: PheroDirection[] = directionTags.map((tag) => ({
+			value: 10,
+			tag,
+		}));
+		const dirsWithinSector = filterDirections(
+			directionTagToAngle.s - eps,
+			directionTagToAngle.n + PI_2 + eps,
+			directions,
+		);
+		const tagsWithinSector = dirsWithinSector.map((d) => d.tag);
+
+		assert.equal(tagsWithinSector.includes("s"), true);
+		assert.equal(tagsWithinSector.includes("se"), true);
+		assert.equal(tagsWithinSector.includes("e"), true);
+		assert.equal(tagsWithinSector.includes("ne"), true);
+		assert.equal(tagsWithinSector.includes("n"), true);
+
+		assert.equal(tagsWithinSector.includes("nw"), false);
+		assert.equal(tagsWithinSector.includes("w"), false);
+		assert.equal(tagsWithinSector.includes("sw"), false);
+	});
+
+	it("captures counter-clockwise directions when sector start is less than 0", () => {
+		const directions: PheroDirection[] = directionTags.map((tag) => ({
+			value: 10,
+			tag,
+		}));
+		const dirsWithinSector = filterDirections(
+			directionTagToAngle.s - PI_2 - eps,
+			directionTagToAngle.n + eps,
+			directions,
+		);
+		const tagsWithinSector = dirsWithinSector.map((d) => d.tag);
+
+		assert.equal(tagsWithinSector.includes("s"), true);
+		assert.equal(tagsWithinSector.includes("se"), true);
+		assert.equal(tagsWithinSector.includes("e"), true);
+		assert.equal(tagsWithinSector.includes("ne"), true);
+		assert.equal(tagsWithinSector.includes("n"), true);
+
+		assert.equal(tagsWithinSector.includes("nw"), false);
+		assert.equal(tagsWithinSector.includes("w"), false);
+		assert.equal(tagsWithinSector.includes("sw"), false);
+	});
+
+	it("throws when no direction belongs to sector", () => {
+		const directions: PheroDirection[] = directionTags.map((tag) => ({
+			value: 10,
+			tag,
+		}));
+		assert.throws(
+			() => {
+				filterDirections(
+					directionTagToAngle.n + PI / 8 - eps,
+					directionTagToAngle.n + PI / 8 + eps,
+					directions,
+				);
+			},
+			{ message: "No directions belongs to sector" },
+		);
+	});
+});
+
+describe("rollAttractingDireciton", () => {
+	it("returns direction maching the roll", () => {
+		// (n, s, w) -> (60%, 10%, 30%)
+		const dirs: PheroDirection[] = [
+			{
+				tag: "n",
+				value: 30,
+			},
+			{
+				tag: "s",
+				value: 5,
+			},
+			{
+				tag: "w",
+				value: 15,
+			},
+		];
+		assert.equal(rollAttractingDireciton(dirs, 0.05).tag, "s");
+		assert.equal(rollAttractingDireciton(dirs, 0.1).tag, "s");
+		assert.equal(rollAttractingDireciton(dirs, 0.21).tag, "w");
+		assert.equal(rollAttractingDireciton(dirs, 0.3).tag, "w");
+		assert.equal(rollAttractingDireciton(dirs, 0.5).tag, "n");
+		assert.equal(rollAttractingDireciton(dirs, 0.9).tag, "n");
+	});
+	it("returns least probable direction when roll is 0", () => {
+		// (n, s, w) -> (60%, 10%, 30%)
+		const dirs: PheroDirection[] = [
+			{
+				tag: "n",
+				value: 30,
+			},
+			{
+				tag: "s",
+				value: 5,
+			},
+			{
+				tag: "w",
+				value: 15,
+			},
+		];
+		assert.equal(rollAttractingDireciton(dirs, 0).tag, "s");
+	});
+	it("returns most probable direction when roll is 1", () => {
+		// (n, s, w) -> (60%, 10%, 30%)
+		const dirs: PheroDirection[] = [
+			{
+				tag: "n",
+				value: 30,
+			},
+			{
+				tag: "s",
+				value: 5,
+			},
+			{
+				tag: "w",
+				value: 15,
+			},
+		];
+		assert.equal(rollAttractingDireciton(dirs, 1).tag, "n");
+	});
+	it("handicaps directions with no pheromone", () => {
+		const dirs: PheroDirection[] = [
+			{
+				tag: "n",
+				value: 30,
+			},
+			{
+				tag: "s",
+				value: 0,
+			},
+			{
+				tag: "w",
+				value: 15,
+			},
+		];
+		assert.equal(rollAttractingDireciton(dirs, 0.1).tag, "s");
+	});
+	it("rolls fair competition for equally probable", () => {
+		const dirs: PheroDirection[] = [
+			{
+				tag: "n",
+				value: 10,
+			},
+			{
+				tag: "s",
+				value: 10,
+			},
+			{
+				tag: "w",
+				value: 10,
+			},
+		];
+		assert.equal(rollAttractingDireciton(dirs, 0.1).tag, "n");
+		assert.equal(rollAttractingDireciton(dirs, 0.5).tag, "s");
+		assert.equal(rollAttractingDireciton(dirs, 0.9).tag, "w");
 	});
 });
