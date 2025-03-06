@@ -116,7 +116,7 @@ export function rollAttractingDireciton(
 	let winnerIndex = 0;
 	while (
 		ascendingChancesPerDir[winnerIndex].value < roll &&
-		winnerIndex < ascendingChancesPerDir.length - 1 
+		winnerIndex < ascendingChancesPerDir.length - 1
 	) {
 		winnerIndex++;
 	}
@@ -148,6 +148,10 @@ export interface Pheromap {
 	 * @returns array of surrounding pheromones according to {@link pheromoneIndexToDirection}.
 	 */
 	readSurroundingPheromonesAt(position: Vector2d): number[];
+	getNeighbourPheromonePositionAt(
+		position: Vector2d,
+		direction: DirectionTag,
+	): Vector2d;
 	evaporte(amount: number): void;
 }
 
@@ -163,6 +167,7 @@ export class ScenePheromap implements Pheromap {
 	// [0, 1), [1, 2), ... (for step = 1)
 	private readonly nodes: number[];
 	private readonly columnsInRow: number;
+	private readonly halfStep: number;
 	constructor(
 		private readonly step: number,
 		size: Vector2d,
@@ -175,6 +180,35 @@ export class ScenePheromap implements Pheromap {
 		this.columnsInRow = size.x / step;
 		const rows = size.y / step;
 		this.nodes = Array(this.columnsInRow * rows).fill(0);
+		this.halfStep = step / 2;
+	}
+
+	getNeighbourPheromonePositionAt(
+		position: Vector2d,
+		direction: DirectionTag,
+	): Vector2d {
+		const center = this.indexOf(position);
+		const neighbourIndexes = [
+			// north
+			center - this.columnsInRow,
+			// north-east
+			center - this.columnsInRow + 1,
+			// east
+			center + 1,
+			// south-east
+			center + this.columnsInRow + 1,
+			// south
+			center + this.columnsInRow,
+			// south-west
+			center + this.columnsInRow - 1,
+			// west
+			center - 1,
+			// north-west
+			center - this.columnsInRow - 1,
+		];
+		const selectedNeighbourIndex =
+			neighbourIndexes[directionTags.indexOf(direction)];
+		return this.centerOf(selectedNeighbourIndex);
 	}
 
 	evaporte(amount: number): void {
@@ -231,5 +265,14 @@ export class ScenePheromap implements Pheromap {
 			this.columnsInRow * Math.trunc(v.y / this.step) +
 			Math.trunc(v.x / this.step)
 		);
+	}
+
+	private centerOf(nodeIndex: number): Vector2d {
+		const rowNumber = nodeIndex % this.columnsInRow;
+		const columnNumber = nodeIndex - rowNumber * this.columnsInRow;
+		return {
+			x: columnNumber * this.step + this.halfStep,
+			y: rowNumber * this.step + this.halfStep,
+		};
 	}
 }
