@@ -4,7 +4,6 @@ import { type Event, EventEmitter } from "../../utils/events";
 import { type Disposable, DisposableStorage } from "../../utils/lifecycle";
 import { distance } from "../../utils/math";
 import { config } from "../config";
-import { AntBase } from "../object/ant";
 import { getNextPositionBatch } from "../physics/movement";
 import { type Indexer, SceneIndexer } from "./indexer";
 import { type Pheromap, ScenePheromap } from "./pheromap";
@@ -32,6 +31,7 @@ export interface DynamicSceneObject extends SceneObjectBase {
 	kind: "dynamic";
 	readonly state: "move" | "idle";
 	readonly velocity: number;
+	emittingFoodPheromone: boolean;
 }
 
 export interface StaticSceneObject extends SceneObjectBase {
@@ -86,7 +86,7 @@ export class SceneBase implements Scene {
 
 	constructor(private readonly size: Vector2d) {
 		this.indexer = new SceneIndexer(100, this.size);
-		this.pheromap = new ScenePheromap(5, this.size);
+		this.pheromap = new ScenePheromap(10, this.size);
 	}
 
 	mount(obj: SceneObject): void {
@@ -116,20 +116,20 @@ export class SceneBase implements Scene {
 		const nonEmittingMovingObjs: DynamicSceneObject[] = this._objs
 			.filter((o) => o.kind === "dynamic")
 			.filter((o) => o.state === "move")
-			.filter((o) => !(o instanceof AntBase) || !o.emittingFoodPheromone);
+			.filter((o) => !o.emittingFoodPheromone);
 
 		const nonEmittingPrevPos: Vector2d[] = [];
 		for (const obj of nonEmittingMovingObjs) {
 			nonEmittingPrevPos.push(obj.renderable.position);
 		}
 
-		const emittingAnts = this._objs
+		const emittingMovingObjs = this._objs
 			.filter((o) => o.kind === "dynamic")
 			.filter((o) => o.state === "move")
-			.filter((o) => o instanceof AntBase && o.emittingFoodPheromone);
+			.filter((o) => o.emittingFoodPheromone);
 
 		const emittingPrevPos: Vector2d[] = [];
-		for (const obj of emittingAnts) {
+		for (const obj of emittingMovingObjs) {
 			emittingPrevPos.push(obj.renderable.position);
 		}
 
@@ -156,13 +156,13 @@ export class SceneBase implements Scene {
 		}
 
 		const emittingNextPos: Vector2d[] = getNextPositionBatch(
-			nonEmittingMovingObjs,
+			emittingMovingObjs,
 			dt,
 		);
 
 		// Update position.
 		let j = 0;
-		for (const obj of emittingAnts) {
+		for (const obj of emittingMovingObjs) {
 			obj.renderable.position = emittingNextPos[j];
 			if (
 				obj.renderable.position.x < 0 ||
@@ -180,7 +180,7 @@ export class SceneBase implements Scene {
 			nonEmittingMovingObjs,
 			nonEmittingPrevPos,
 		);
-		this.indexer.notifyPositionUpdateBatch(emittingAnts, emittingPrevPos);
+		this.indexer.notifyPositionUpdateBatch(emittingMovingObjs, emittingPrevPos);
 
 		// Apply pheromones.
 		this.pheromap.updateBatch(

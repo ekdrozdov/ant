@@ -1,17 +1,11 @@
 import { config } from "../config";
 import type { Ant } from "../object/ant";
-import { Mark } from "../object/mark";
-import { FoodSourceObject } from "../object/resource";
+import type { FoodSourceObject } from "../object/resource";
 import {} from "../scene/pheromap";
 import type { Agent } from "./agent";
 import { enterInteractionRange } from "./task/interaction";
 import { type TaskGraph, TaskGraphExecutor, task } from "./task/task";
-import {
-	type NavigationContext,
-	type Trail,
-	reachEndOfTrail,
-	reachStartOfTrail,
-} from "./task/trail";
+import { type Trail, reachStartOfTrail } from "./task/trail";
 
 interface TrailContext {
 	trail: Trail;
@@ -19,12 +13,11 @@ interface TrailContext {
 }
 
 // Engages into pheromone trails by chance.
-function* findJob(input: { ant: Ant }): Generator<void, TrailContext> {
+function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	const { ant } = input;
 	while (true) {
-		const mark = ant.getVisibleObjects(Mark).filter((m) => m.attracting)[0];
-		if (mark) {
-			return { trail: mark.trail, ant };
+		if (ant.getSurroundingPheromones().some((ph) => ph > 0)) {
+			return input;
 		}
 
 		if (ant.distanceTo(ant.home) >= config.antJoblessRoamingMaxDistance) {
@@ -48,7 +41,7 @@ function* findJob(input: { ant: Ant }): Generator<void, TrailContext> {
 	}
 }
 
-function* followPheromone(input: { ant: Ant }): Generator<void, TrailContext> {
+function* followPheromone(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	const { ant } = input;
 	ant.faceAttractingPheromone();
 	ant.move();
@@ -66,77 +59,75 @@ function* followPheromone(input: { ant: Ant }): Generator<void, TrailContext> {
 	}
 }
 
-function createMineTaskGraph(): TaskGraph<
-	NavigationContext,
-	NavigationContext
-> {
-	let foodLeft = 1;
+function createMineTaskGraph(): TaskGraph<{ ant: Ant }, { ant: Ant }> {
+	// let foodLeft = 1;
 
 	const goToMine = task(followPheromone);
 	const enterMine = task(enterInteractionRange<FoodSourceObject>);
 	const goToHome = task(reachStartOfTrail);
 	const enterHome = task(enterInteractionRange<FoodSourceObject>);
-	const terminal = task(reachStartOfTrail);
+	// const terminal = task(reachStartOfTrail);
+	const terminal = goToMine;
 
-	const load = task(function* (
-		input: NavigationContext & { food: FoodSourceObject },
-	) {
-		input.ant.grab(input.food);
-		foodLeft = input.food.amount;
-		return input;
-	});
+	// const load = task(function* (
+	// 	input: NavigationContext & { food: FoodSourceObject },
+	// ) {
+	// 	input.ant.grab(input.food);
+	// 	foodLeft = input.food.amount;
+	// 	return input;
+	// });
 
-	const unload = task(function* (input: NavigationContext) {
-		input.ant.store(input.ant.home.storage);
-		return input;
-	});
+	// const unload = task(function* (input: NavigationContext) {
+	// 	input.ant.store(input.ant.home.storage);
+	// 	return input;
+	// });
 
-	let context: undefined | (NavigationContext & { food: FoodSourceObject });
+	// let context: undefined | (NavigationContext & { food: FoodSourceObject });
 
-	goToMine.next((input) => {
-		const food = input.ant.getVisibleObjects(FoodSourceObject)[0];
-		if (!food) {
-			return terminal.start(input);
-		}
-		context = {
-			ant: input.ant,
-			trail: input.trail,
-			food,
-		};
-		return enterMine.start({ ant: input.ant, target: food });
-	});
+	// goToMine.next((input) => {
+	// 	const food = input.ant.getVisibleObjects(FoodSourceObject)[0];
+	// 	if (!food) {
+	// 		return terminal.start(input);
+	// 	}
+	// 	context = {
+	// 		ant: input.ant,
+	// 		trail: input.trail,
+	// 		food,
+	// 	};
+	// 	return enterMine.start({ ant: input.ant, target: food });
+	// });
 
-	enterMine.next(() => {
-		if (!context) {
-			throw new Error("Context read before assigned.");
-		}
-		return load.start(context);
-	});
-	load.next(goToHome);
-	goToHome.next((input) => {
-		return enterHome.start({ ant: input.ant, target: input.ant.home.storage });
-	});
+	// enterMine.next(() => {
+	// 	if (!context) {
+	// 		throw new Error("Context read before assigned.");
+	// 	}
+	// 	return load.start(context);
+	// });
+	// load.next(goToHome);
+	// goToHome.next((input) => {
+	// 	return enterHome.start({ ant: input.ant, target: input.ant.home.storage });
+	// });
 
-	enterHome.next(() => {
-		if (!context) {
-			throw new Error("Context read before assigned.");
-		}
-		return unload.start({
-			ant: context.ant,
-			trail: context.trail,
-		});
-	});
+	// enterHome.next(() => {
+	// 	if (!context) {
+	// 		throw new Error("Context read before assigned.");
+	// 	}
+	// 	return unload.start({
+	// 		ant: context.ant,
+	// 		trail: context.trail,
+	// 	});
+	// });
 
-	unload.next((input) => {
-		if (foodLeft === 0) {
-			return terminal.start(input);
-		}
-		return goToMine.start(input);
-	});
+	// unload.next((input) => {
+	// 	if (foodLeft === 0) {
+	// 		return terminal.start(input);
+	// 	}
+	// 	return goToMine.start(input);
+	// });
 
 	return {
 		root: goToMine,
-		terminal,
+		terminal: goToMine,
 	};
 }
 

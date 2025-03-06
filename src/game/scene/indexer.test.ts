@@ -8,6 +8,7 @@ class DynamicTestObj extends SceneObjectImpl implements DynamicSceneObject {
 	readonly kind = "dynamic";
 	readonly state = "move";
 	readonly velocity = 1;
+	emittingFoodPheromone = false;
 }
 
 describe("Indexer", () => {

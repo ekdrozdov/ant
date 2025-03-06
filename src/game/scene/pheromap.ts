@@ -174,7 +174,7 @@ export class ScenePheromap implements Pheromap {
 	) {
 		if (size.x % step !== 0 || size.y % step !== 0) {
 			throw new Error(
-				`Size of the space to be indexed must be multiple of ${step}, but got ${size}`,
+				`Size of the space to be indexed must be multiple of ${step}, but got ${JSON.stringify(size)}`,
 			);
 		}
 		this.columnsInRow = size.x / step;
