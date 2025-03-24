@@ -1,10 +1,8 @@
+add ant last N positions memory and movement vector
+add sensitivity radius
 refactor to DI pattern
-move constants into configuration
 
 add lint rule to forbid ignore of return value of type disposable
-
-task system
-  building task graph
 
 scene serialization
 
