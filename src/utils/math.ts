@@ -85,10 +85,4 @@ export function insideSectorStrict(
 	}
 
 	return teta > start && teta < end;
-
-	// return (
-	// 	(start < 0 && teta - PI_2 > start && teta < end) ||
-	// 	(end > PI_2 && teta > start && teta + PI_2 < end) ||
-	// 	(teta > start && teta < end)
-	// );
 }
