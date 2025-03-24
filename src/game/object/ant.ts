@@ -1,4 +1,5 @@
 import { RenderableBase, type Vector2d } from "../../renderer/renderable";
+import { OrderedCircularBuffer } from "../../utils/buffer";
 import type { ConstructorType } from "../../utils/class";
 import { EventEmitter } from "../../utils/events";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
@@ -28,7 +29,7 @@ import {
 } from "./resource";
 
 let id = 0;
-function getId() {
+function generateId() {
 	return id++;
 }
 
@@ -64,26 +65,37 @@ export interface Ant {
 	distanceTo(target: SceneObject): number;
 	grab(target: FoodSourceObject): void;
 	store(target: FoodSourceObject): void;
+	startPathRecording(): void;
 }
+
+const visibilityHalfAngle = Math.PI / 2;
+const trackedPathTailPositions = 5;
 
 export class AntBase
 	extends SceneObjectImpl
 	implements Ant, DynamicSceneObject
 {
-	kind = "dynamic" as const;
+	readonly id: number = generateId();
+	readonly kind = "dynamic";
 	state: "move" | "idle" = "idle";
 	emittingFoodPheromone = false;
 	food = new FoodResource(100);
 	pocket: Pocket = { food: new FoodResource() };
 	velocity = config.antVelocity;
-	private readonly visibilityHalfAngle = Math.PI / 2;
+
 	protected readonly world: World;
-	public readonly id: number = getId();
+	private pathTailPositions: OrderedCircularBuffer<Vector2d>;
+
 	private readonly _onDead = new EventEmitter<void>();
 	readonly onDead = this._onDead.event;
+
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
 		this.world = getWorld();
+		this.pathTailPositions = new OrderedCircularBuffer(
+			trackedPathTailPositions,
+			this.renderable.position,
+		);
 		this.register(
 			this.world.clock.onMinute(() => {
 				this.food.amount -= 1;
@@ -98,33 +110,19 @@ export class AntBase
 			}),
 		);
 	}
-	store(target: FoodSourceObject): void {
-		assertWithinInteractionRange(this, target);
-		transferResource(this.pocket.food, target.food, this.pocket.food.amount);
-		this.home.storage;
+
+	startPathRecording(): void {
+		this.pathTailPositions.resetWith(this.renderable.position);
 	}
-	grab(target: FoodSourceObject): void {
-		assertWithinInteractionRange(this, target);
-		transferResource(target.food, this.pocket.food, config.antCarryCapacity);
-		console.debug(`Ant ${this.id} grabbed food`);
+
+	/**
+	 * Non-physics driven reset (e.g. during scene initialization)
+	 */
+	resetPositionTo(position: Vector2d) {
+		this.renderable.position = position;
+		this.pathTailPositions.resetWith(position);
 	}
-	mark(trail: Trail, attracting = false): Mark {
-		const mark = new Mark(this.id, attracting, trail);
-		mark.renderable.position = this.renderable.position;
-		this.world.scene.mount(mark);
-		return mark;
-	}
-	move(): void {
-		this.state = "move";
-	}
-	rotate(radians: number): void {
-		let normalizedRotation = radians % PI_2;
-		if (normalizedRotation < 0) {
-			normalizedRotation = PI_2 + normalizedRotation;
-		}
-		this.renderable.rotation =
-			(this.renderable.rotation + normalizedRotation) % PI_2;
-	}
+
 	face(target: SceneObjectBase): void {
 		const targetVector = {
 			x: target.renderable.position.x - this.renderable.position.x,
@@ -132,16 +130,46 @@ export class AntBase
 		};
 		this.facePosition(targetVector);
 	}
-	private facePosition(position: Vector2d) {
-		const targetRotation = rotationOf(position);
-		this.renderable.rotation = targetRotation;
+
+	store(target: FoodSourceObject): void {
+		assertWithinInteractionRange(this, target);
+		transferResource(this.pocket.food, target.food, this.pocket.food.amount);
+		this.home.storage;
 	}
+
+	grab(target: FoodSourceObject): void {
+		assertWithinInteractionRange(this, target);
+		transferResource(target.food, this.pocket.food, config.antCarryCapacity);
+		console.debug(`Ant ${this.id} grabbed food`);
+	}
+
+	mark(trail: Trail, attracting = false): Mark {
+		const mark = new Mark(this.id, attracting, trail);
+		mark.renderable.position = this.renderable.position;
+		this.world.scene.mount(mark);
+		return mark;
+	}
+
+	move(): void {
+		this.state = "move";
+	}
+
+	rotate(radians: number): void {
+		let normalizedRotation = radians % PI_2;
+		if (normalizedRotation < 0) {
+			normalizedRotation = PI_2 + normalizedRotation;
+		}
+		this.updateRotation((this.renderable.rotation + normalizedRotation) % PI_2);
+	}
+
 	isWithinInteractionRange(target: SceneObject): boolean {
 		return isWithinInteractionRange(this, target);
 	}
+
 	stop(): void {
 		this.state = "idle";
 	}
+
 	eat(source: FoodSourceObject): void {
 		assertWithinInteractionRange(this, source);
 		transferResource(
@@ -150,6 +178,7 @@ export class AntBase
 			config.antFoodConsumptionPerSecond,
 		);
 	}
+
 	getVisibleObjects<T extends SceneObject>(
 		targetClass: ConstructorType<T>,
 	): T[];
@@ -165,6 +194,7 @@ export class AntBase
 			? visibleObjects.filter((o) => o instanceof targetClass)
 			: visibleObjects;
 	}
+
 	getVisibleObjectsInfront(): SceneObject[] {
 		return this.world.scene
 			.findObjectsInRadius(this, config.antVisionDistance)
@@ -176,21 +206,23 @@ export class AntBase
 				const targetRotation = rotationOf(targetVector);
 				return (
 					Math.abs(targetRotation - this.renderable.rotation) <=
-					this.visibilityHalfAngle
+					visibilityHalfAngle
 				);
 			});
 	}
+
 	getSurroundingPheromones(): number[] {
 		return this.world.scene.pheromap.readSurroundingPheromonesAt(
 			this.renderable.position,
 		);
 	}
+
 	faceAttractingPheromone() {
 		const phs = this.world.scene.pheromap.readSurroundingPheromonesAt(
 			this.renderable.position,
 		);
 		// TODO: track path trajectory
-		const movementDirection = this.renderable.rotation;
+		const movementDirection = this.getPathTailVectorRotation();
 		// Want to capture 3 direcitons to roll from.
 		const movementSectorHalfAngle = PI / 2 - 0.1;
 		const dirs = filterDirections(
@@ -206,8 +238,34 @@ export class AntBase
 			);
 		this.facePosition(targetPosition);
 	}
+
 	distanceTo(target: SceneObjectBase): number {
 		return distance(this.renderable.position, target.renderable.position);
+	}
+
+	private facePosition(position: Vector2d) {
+		this.updateRotation(rotationOf(position));
+	}
+
+	private updateRotation(targetRotation: number) {
+		this.pathTailPositions.push({
+			x: this.renderable.position.x,
+			y: this.renderable.position.y,
+		});
+		this.renderable.rotation = targetRotation;
+	}
+
+	private getPathTailVectorRotation(): number {
+		const pathTailPositions = this.pathTailPositions.read();
+		const trackedPositionsSumVection: Vector2d = {
+			x: pathTailPositions[0].x,
+			y: pathTailPositions[0].y,
+		};
+		for (let i = 1; i < pathTailPositions.length; ++i) {
+			trackedPositionsSumVection.x += pathTailPositions[i].x;
+			trackedPositionsSumVection.y += pathTailPositions[i].y;
+		}
+		return rotationOf(trackedPositionsSumVection);
 	}
 }
 

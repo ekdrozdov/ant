@@ -30,7 +30,7 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	for (const _ of Array.from(new Array(1))) {
 		const ant = new AntBase(chamber);
 		const scout = new Scout(ant);
-		ant.renderable.position = { x: 5000, y: 5000 };
+		ant.resetPositionTo({ x: 5000, y: 5000 });
 		world.scene.mount(ant);
 		agentRegistry.register(scout);
 		ant.onDead(() => {
@@ -42,7 +42,7 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	for (const _ of Array.from(new Array(1))) {
 		const ant = new AntBase(chamber);
 		const worker = new Worker(ant);
-		ant.renderable.position = { x: 5000, y: 5000 };
+		ant.resetPositionTo({ x: 5000, y: 5000 });
 		world.scene.mount(ant);
 		agentRegistry.register(worker);
 		ant.onDead(() => {

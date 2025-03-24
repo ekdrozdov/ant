@@ -97,7 +97,9 @@ export class SceneBase implements Scene {
 			obj.renderable.position.x > this.size.x ||
 			obj.renderable.position.y > this.size.y
 		) {
-			throw new Error(`Object out of bounds: ${obj.renderable.position}`);
+			throw new Error(
+				`Object out of bounds: ${JSON.stringify(obj.renderable.position)}`,
+			);
 		}
 		this._objs.push(obj);
 		this.indexer.register(obj);
@@ -150,7 +152,9 @@ export class SceneBase implements Scene {
 				obj.renderable.position.x > this.size.x ||
 				obj.renderable.position.y > this.size.y
 			) {
-				throw new Error(`Object out of bounds: ${obj.renderable.position}`);
+				throw new Error(
+					`Object out of bounds: ${JSON.stringify(obj.renderable.position)}`,
+				);
 			}
 			++i;
 		}
@@ -170,7 +174,9 @@ export class SceneBase implements Scene {
 				obj.renderable.position.x > this.size.x ||
 				obj.renderable.position.y > this.size.y
 			) {
-				throw new Error(`Object out of bounds: ${obj.renderable.position}`);
+				throw new Error(
+					`Object out of bounds: ${JSON.stringify(obj.renderable.position)}`,
+				);
 			}
 			++j;
 		}
@@ -183,7 +189,7 @@ export class SceneBase implements Scene {
 		this.indexer.notifyPositionUpdateBatch(emittingMovingObjs, emittingPrevPos);
 
 		// Apply pheromones.
-		this.pheromap.updateBatch(
+		this.pheromap.notifyPositionUpdateBatch(
 			emittingPrevPos,
 			emittingNextPos,
 			config.antPheromoneMarkIntensity,

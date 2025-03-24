@@ -21,31 +21,31 @@ describe("Pheromap", () => {
 
 		// Should update first cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
 		// Should update second cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
 		// Should update third cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
@@ -74,7 +74,11 @@ describe("Pheromap", () => {
 
 		// Should update first cell.
 
-		pheromap.updateBatch([startOne, startAnother], [endOne, endAnother], 10);
+		pheromap.notifyPositionUpdateBatch(
+			[startOne, startAnother],
+			[endOne, endAnother],
+			10,
+		);
 
 		// Should update second cell.
 
@@ -83,7 +87,11 @@ describe("Pheromap", () => {
 		startAnother = translate(startAnother, 2, 0);
 		endAnother = translate(endAnother, 2, 0);
 
-		pheromap.updateBatch([startOne, startAnother], [endOne, endAnother], 10);
+		pheromap.notifyPositionUpdateBatch(
+			[startOne, startAnother],
+			[endOne, endAnother],
+			10,
+		);
 
 		// Should update third cell.
 
@@ -92,7 +100,11 @@ describe("Pheromap", () => {
 		startAnother = translate(startAnother, 2, 0);
 		endAnother = translate(endAnother, 2, 0);
 
-		pheromap.updateBatch([startOne, startAnother], [endOne, endAnother], 10);
+		pheromap.notifyPositionUpdateBatch(
+			[startOne, startAnother],
+			[endOne, endAnother],
+			10,
+		);
 
 		const pheromones = pheromap.readSurroundingPheromonesAt({
 			x: 3,
@@ -116,31 +128,31 @@ describe("Pheromap", () => {
 
 		// Should update first cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
 		// Should update second cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
 		// Should update third cell.
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
-		pheromap.updateBatch([start], [end], 10);
+		pheromap.notifyPositionUpdateBatch([start], [end], 10);
 		start = translate(start, 1, 1);
 		end = translate(end, 1, 1);
 
@@ -166,11 +178,11 @@ describe("Pheromap", () => {
 
 		// Should update first cell.
 
-		pheromap.updateBatch([start], [end], 4);
+		pheromap.notifyPositionUpdateBatch([start], [end], 4);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
-		pheromap.updateBatch([start], [end], 4);
+		pheromap.notifyPositionUpdateBatch([start], [end], 4);
 		start = translate(start, 1, 0);
 		end = translate(end, 1, 0);
 
@@ -448,5 +460,11 @@ describe("rollAttractingDireciton", () => {
 		assert.equal(rollAttractingDireciton(dirs, 0.1).tag, "n");
 		assert.equal(rollAttractingDireciton(dirs, 0.5).tag, "s");
 		assert.equal(rollAttractingDireciton(dirs, 0.9).tag, "w");
+	});
+	it("getNeighbourPheromonePositionAt", () => {
+		const pheromap = new ScenePheromap(2, { x: 10, y: 10 });
+		
+		const northPos = pheromap.getNeighbourPheromonePositionAt({x: 4.5, y: 4.5}, 'n')
+		assert.strictEqual(northPos, {x: 4.5, y: 3.5})
 	});
 });

@@ -43,6 +43,7 @@ function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 
 function* followPheromone(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	const { ant } = input;
+	ant.startPathRecording();
 	ant.faceAttractingPheromone();
 	ant.move();
 	// move along pheromone path

@@ -138,7 +138,7 @@ export interface Pheromap {
 	 * Increace pheromone intensity at trajectory. Includes start position, excludes end position.
 	 * Limited to support movements no more than 1 cell away per update.
 	 */
-	updateBatch(
+	notifyPositionUpdateBatch(
 		startPosition: Vector2d[],
 		endPosition: Vector2d[],
 		amount: number,
@@ -217,7 +217,7 @@ export class ScenePheromap implements Pheromap {
 		}
 	}
 
-	updateBatch(
+	notifyPositionUpdateBatch(
 		startPosition: Vector2d[],
 		endPosition: Vector2d[],
 		amount: number,
