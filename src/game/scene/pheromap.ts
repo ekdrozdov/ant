@@ -191,20 +191,20 @@ export class ScenePheromap implements Pheromap {
 		const neighbourIndexes = [
 			// north
 			center - this.columnsInRow,
-			// north-east
-			center - this.columnsInRow + 1,
-			// east
-			center + 1,
-			// south-east
-			center + this.columnsInRow + 1,
-			// south
-			center + this.columnsInRow,
-			// south-west
-			center + this.columnsInRow - 1,
-			// west
-			center - 1,
 			// north-west
 			center - this.columnsInRow - 1,
+			// west
+			center - 1,
+			// south-west
+			center + this.columnsInRow - 1,
+			// south
+			center + this.columnsInRow,
+			// south-east
+			center + this.columnsInRow + 1,
+			// east
+			center + 1,
+			// north-east
+			center - this.columnsInRow + 1,
 		];
 		const selectedNeighbourIndex =
 			neighbourIndexes[directionTags.indexOf(direction)];
@@ -243,20 +243,20 @@ export class ScenePheromap implements Pheromap {
 		return [
 			// north
 			this.nodes[center - this.columnsInRow],
-			// north-east
-			this.nodes[center - this.columnsInRow + 1],
-			// east
-			this.nodes[center + 1],
-			// south-east
-			this.nodes[center + this.columnsInRow + 1],
-			// south
-			this.nodes[center + this.columnsInRow],
-			// south-west
-			this.nodes[center + this.columnsInRow - 1],
-			// west
-			this.nodes[center - 1],
 			// north-west
 			this.nodes[center - this.columnsInRow - 1],
+			// west
+			this.nodes[center - 1],
+			// south-west
+			this.nodes[center + this.columnsInRow - 1],
+			// south
+			this.nodes[center + this.columnsInRow],
+			// south-east
+			this.nodes[center + this.columnsInRow + 1],
+			// east
+			this.nodes[center + 1],
+			// north-east
+			this.nodes[center - this.columnsInRow + 1],
 		];
 	}
 
@@ -268,7 +268,7 @@ export class ScenePheromap implements Pheromap {
 	}
 
 	private centerOf(nodeIndex: number): Vector2d {
-		const rowNumber = nodeIndex % this.columnsInRow;
+		const rowNumber = Math.trunc(nodeIndex / this.columnsInRow);
 		const columnNumber = nodeIndex - rowNumber * this.columnsInRow;
 		return {
 			x: columnNumber * this.step + this.halfStep,

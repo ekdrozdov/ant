@@ -69,7 +69,7 @@ export interface Ant {
 }
 
 const visibilityHalfAngle = Math.PI / 2;
-const trackedPathTailPositions = 5;
+const trackedPathTailPositions = 2;
 
 export class AntBase
 	extends SceneObjectImpl
@@ -124,11 +124,11 @@ export class AntBase
 	}
 
 	face(target: SceneObjectBase): void {
-		const targetVector = {
+		const translatedTargetVector = {
 			x: target.renderable.position.x - this.renderable.position.x,
 			y: target.renderable.position.y - this.renderable.position.y,
 		};
-		this.facePosition(targetVector);
+		this.updateRotation(rotationOf(translatedTargetVector));
 	}
 
 	store(target: FoodSourceObject): void {
@@ -236,15 +236,24 @@ export class AntBase
 				this.renderable.position,
 				attractor.tag,
 			);
-		this.facePosition(targetPosition);
+		// console.log(
+		// 	`agent ${JSON.stringify(this.renderable.position)} ${this.renderable.rotation}`,
+		// );
+		// console.log(
+		// 	`attractor: ${attractor.tag} ${JSON.stringify(targetPosition)}`,
+		// );
+		// TODO: generalize
+		const translatedTargetPosition: Vector2d = {
+			x: targetPosition.x - this.renderable.position.x,
+			y: targetPosition.y - this.renderable.position.y,
+		};
+		const targetRotation = rotationOf(translatedTargetPosition);
+		this.updateRotation(targetRotation);
+		// this.facePosition(targetPosition);
 	}
 
 	distanceTo(target: SceneObjectBase): number {
 		return distance(this.renderable.position, target.renderable.position);
-	}
-
-	private facePosition(position: Vector2d) {
-		this.updateRotation(rotationOf(position));
 	}
 
 	private updateRotation(targetRotation: number) {
@@ -253,9 +262,12 @@ export class AntBase
 			y: this.renderable.position.y,
 		});
 		this.renderable.rotation = targetRotation;
+		return targetRotation;
 	}
 
 	private getPathTailVectorRotation(): number {
+		// TODO: translate vectors first before sum it up.
+		// Maybe just use last choosen direciton.
 		const pathTailPositions = this.pathTailPositions.read();
 		const trackedPositionsSumVection: Vector2d = {
 			x: pathTailPositions[0].x,
@@ -265,6 +277,9 @@ export class AntBase
 			trackedPositionsSumVection.x += pathTailPositions[i].x;
 			trackedPositionsSumVection.y += pathTailPositions[i].y;
 		}
+		trackedPositionsSumVection.x += this.renderable.position.x;
+		trackedPositionsSumVection.y += this.renderable.position.y;
+
 		return rotationOf(trackedPositionsSumVection);
 	}
 }

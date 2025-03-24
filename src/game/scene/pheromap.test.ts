@@ -463,8 +463,26 @@ describe("rollAttractingDireciton", () => {
 	});
 	it("getNeighbourPheromonePositionAt", () => {
 		const pheromap = new ScenePheromap(2, { x: 10, y: 10 });
-		
-		const northPos = pheromap.getNeighbourPheromonePositionAt({x: 4.5, y: 4.5}, 'n')
-		assert.strictEqual(northPos, {x: 4.5, y: 3.5})
+
+		const northPos = pheromap.getNeighbourPheromonePositionAt(
+			{ x: 4.5, y: 4.5 },
+			"n",
+		);
+		assert.strictEqual(northPos.x, 5);
+		assert.strictEqual(northPos.y, 3);
+
+		const nePos = pheromap.getNeighbourPheromonePositionAt(
+			{ x: 4.5, y: 4.5 },
+			"ne",
+		);
+		assert.strictEqual(nePos.x, 7);
+		assert.strictEqual(nePos.y, 3);
+
+		const eastPos = pheromap.getNeighbourPheromonePositionAt(
+			{ x: 4.5, y: 4.5 },
+			"e",
+		);
+		assert.strictEqual(eastPos.x, 7);
+		assert.strictEqual(eastPos.y, 5);
 	});
 });
