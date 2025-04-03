@@ -1,16 +1,11 @@
 import { config } from "../config";
 import type { Ant } from "../object/ant";
 import type { FoodSourceObject } from "../object/resource";
-import {} from "../scene/pheromap";
 import type { Agent } from "./agent";
 import { enterInteractionRange } from "./task/interaction";
 import { type TaskGraph, TaskGraphExecutor, task } from "./task/task";
-import { type Trail, reachStartOfTrail } from "./task/trail";
+import { reachStartOfTrail } from "./task/trail";
 
-interface TrailContext {
-	trail: Trail;
-	ant: Ant;
-}
 
 // Engages into pheromone trails by chance.
 function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
@@ -25,7 +20,7 @@ function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 		}
 
 		if (Math.random() < 0.1) {
-			ant.rotate(
+			ant.rotateRelative(
 				Math.sign(Math.random() - 0.5) * config.antNoiseRotationAmount,
 			);
 		}
@@ -43,6 +38,11 @@ function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 
 function* followPheromone(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	const { ant } = input;
+
+	// Follow the route cutting corners.
+	// When several alternative branches available, roll the branch weighted-randomly.
+	// When leaving the home, track the route as a sequence of rotations and distances.
+
 	ant.startPathRecording();
 	ant.faceAttractingPheromone();
 	ant.move();

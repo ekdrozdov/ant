@@ -95,7 +95,7 @@ export function* extendTrail(input: NavigationContext): Generator<void, Trail> {
 		config.trailAdjacentNodesDistance
 	) {
 		if (Math.random() < 0.1) {
-			ant.rotate(
+			ant.rotateRelative(
 				Math.sign(Math.random() - 0.5) * config.antNoiseRotationAmount,
 			);
 		}
