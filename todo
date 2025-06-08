@@ -1,3 +1,10 @@
+mvp hive
+  main chamber
+  queen
+  e2e ant lifecycle
+  roaming workers
+  
+
 add ant last N positions memory and movement vector
 add sensitivity radius
 refactor to DI pattern

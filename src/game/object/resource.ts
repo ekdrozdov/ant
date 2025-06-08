@@ -44,6 +44,10 @@ export function assertWithinInteractionRange(
 	}
 }
 
+// carbonhydrate food comes from phid dew, plant nectar, fruit juice
+// protein food comes from insects, mushrooms
+// ant has goiter to store and share food and personal stomack for self nutrition
+// queen pheromones can slow down workers metabolism (slower speed, less muscle and brain activity, consume less food, eat less)
 export class FoodResource implements Resource<"food"> {
 	readonly tag = "food";
 	amount: number;

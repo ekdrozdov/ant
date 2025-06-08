@@ -14,7 +14,7 @@ export interface Ant {
 	state: "move" | "idle";
 	emittingFoodPheromone: boolean;
 	food: FoodResource;
-	pocket: Pocket;
+	readonly pocket: Pocket;
 	readonly home: Building;
 
 	mark(trail: Trail, attracting?: boolean): Mark;

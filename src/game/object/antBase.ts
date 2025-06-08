@@ -46,17 +46,19 @@ export class AntBase
 	state: "move" | "idle" = "idle";
 	emittingFoodPheromone = false;
 	food = new FoodResource(100);
-	pocket: Pocket = { food: new FoodResource() };
+	readonly pocket: Pocket = { food: new FoodResource() };
 	velocity = config.antVelocity;
 
 	protected readonly world: World;
 	private pathTailPositions: OrderedCircularBuffer<Vector2d>;
 
 	private readonly _onDead = new EventEmitter<void>();
+	// TODO: all scene objects must be wether child objects or self-disposable (=self-dismountable).
 	readonly onDead = this._onDead.event;
 
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
+		console.debug("Creating ant");
 		this.world = getWorld();
 		this.pathTailPositions = new OrderedCircularBuffer(
 			trackedPathTailPositions,
@@ -64,12 +66,13 @@ export class AntBase
 		);
 		this.register(
 			this.world.clock.onMinute(() => {
-				this.food.amount -= 1;
+				this.food.amount -= config.antFoodDepletionPerMinute;
 				console.debug(`${this.id} food ${this.food.amount}`);
 				if (this.food.amount <= 0) {
 					const corpse = new AntCorpse();
 					corpse.renderable.position = this.renderable.position;
 					this.world.scene.mount(corpse);
+					// TODO: all scene objects must be wether child objects or self-disposable (=self-dismountable).
 					corpse.onDecomposed(() => this.world.scene.dismount(corpse));
 					this._onDead.dispatch();
 				}

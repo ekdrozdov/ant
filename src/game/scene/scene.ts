@@ -23,8 +23,8 @@ export class MetaBase implements Meta {
 export interface SceneObjectBase extends Disposable {
 	readonly meta: Meta;
 	readonly renderable: Renderable;
-	onMount?(): void;
-	onDismount?(): void;
+	onMount?(scene: Scene): void;
+	onDismount(): void;
 }
 
 export interface DynamicSceneObject extends SceneObjectBase {
@@ -90,7 +90,7 @@ export class SceneBase implements Scene {
 	}
 
 	mount(obj: SceneObject): void {
-		obj.onMount?.();
+		obj.onMount?.(this);
 		if (
 			obj.renderable.position.x < 0 ||
 			obj.renderable.position.y < 0 ||
@@ -105,6 +105,7 @@ export class SceneBase implements Scene {
 		this.indexer.register(obj);
 		this._onMount.dispatch({ obj: obj });
 	}
+	
 	dismount(obj: SceneObject): void {
 		obj.onDismount?.();
 		const i = this._objs.findIndex((o) => o === obj);

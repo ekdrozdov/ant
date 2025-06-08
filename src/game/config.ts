@@ -7,6 +7,7 @@ export const config = {
 
 	trailAdjacentNodesDistance: antVisionDistance / 2,
 
+	workerLifetimeDays: 550,
 	// TODO: ants should eat approximately twice a day.
 	antFoodDepletionPerMinute: 1,
 	/**
@@ -22,6 +23,20 @@ export const config = {
 	antCarryCapacity: 50,
 	antSensitivityDistance: 10,
 	antPheromoneMarkIntensity: 10,
+
+	larvaLifetimeDays: 18,
+	larvaFoodInitAmount: 6,
+	larvaFoodDepletionPerMinute: 0.33,
+	larvaFoodLowAmount: 5,
+	larvaFoodMaxAmount: 10,
+
+	maleLifetimeDays: 18,
+
+	eggStageLifetimeDays: 12,
+
+	pupaStageLifetimeDays: 18,
+
+	queenLifetimeDays: 7300,
 
 	pheromoneDecayPerMinute: 10,
 } as const;

@@ -1,8 +1,10 @@
 import { agentRegistry } from "./game/agent/agent";
+import { QueenAgent } from "./game/agent/queen";
 import { Scout } from "./game/agent/scout";
 import { Worker } from "./game/agent/worker";
 import { AntBase } from "./game/object/antBase";
 import { LivingChamber } from "./game/object/buildings";
+import { QueenImpl } from "./game/object/queen";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
 import type {} from "./renderer/renderable";
@@ -45,11 +47,21 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 		ant.resetPositionTo({ x: 5000, y: 5000 });
 		world.scene.mount(ant);
 		agentRegistry.register(worker);
+		// let the body manage its agent obj lifecycle
 		ant.onDead(() => {
 			agentRegistry.unregister(worker);
 			world.scene.dismount(ant);
 		});
 	}
+
+	const queen = new QueenImpl(chamber);
+	queen.renderable.position = {
+		x: chamber.renderable.position.x,
+		y: chamber.renderable.position.y,
+	};
+	const queenAgent = new QueenAgent(queen);
+	world.scene.mount(queen);
+	agentRegistry.register(queenAgent);
 
 	let i = 0;
 	// Limit fps with screen frequency rate.
