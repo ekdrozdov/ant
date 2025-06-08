@@ -1,9 +1,20 @@
-mvp hive
-  main chamber
+hive lifecycle
+  +main chamber
   queen
+  queen lifecycle
+  customizable task freq
   e2e ant lifecycle
   roaming workers
-  
+  chamber maintanence and degradation
+
+mvp hive
+  food collection
+    scouting
+    transport
+    storage
+    consumption
+  chamber construction
+  builders
 
 add ant last N positions memory and movement vector
 add sensitivity radius
