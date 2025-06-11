@@ -1,4 +1,6 @@
 import { RenderableBase } from "../../renderer/renderable";
+import { toDisposable } from "../../utils/lifecycle";
+import { type Agent, agentRegistry } from "../agent/agent";
 import { config } from "../config";
 import {
 	type Scene,
@@ -6,32 +8,34 @@ import {
 	type StaticSceneObject,
 } from "../scene/scene";
 import { getWorld } from "../world";
+import type { Body } from "./body";
 import type { Building } from "./buildings";
 import { Egg } from "./egg";
 import { FoodResource } from "./resource";
 
 // todo: inherit props like age, food etc. from ant.
-export interface WingedQueen {
+export interface WingedQueenBody extends Body {
 	fly(): void;
 	move(): void;
 	breed(): void;
 	settle(): void;
 }
 
-export interface SettledQueen {
+export interface SettledQueenBody extends Body {
 	spawn(): void;
 	eat(): void;
 }
 
 // TODO: should extend antbase.
-export class QueenImpl
+export class SettledQueenBodyImpl
 	extends SceneObjectImpl
-	implements StaticSceneObject, SettledQueen
+	implements StaticSceneObject, SettledQueenBody
 {
 	readonly kind = "static";
 	private age = 0;
-	private food = new FoodResource(100);
+	private food = new FoodResource(10);
 	private scene!: Scene;
+	private agent?: Agent;
 
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
@@ -43,12 +47,33 @@ export class QueenImpl
 			getWorld().clock.onMinute(() => {
 				this.food.amount -= config.antFoodDepletionPerMinute;
 				console.debug(`queen food ${this.food.amount}`);
+				if (this.food.amount <= 0) {
+					console.debug("queen dies of starvation");
+					scene.dismount(this);
+					// todo: dispose related agent
+				}
+			}),
+		);
+		this.register(
+			toDisposable(() => {
+				if (this.agent) {
+					agentRegistry.unregister(this.agent);
+				}
 			}),
 		);
 	}
 
+	resetAgent(agent: Agent): void {
+		if (this.agent) {
+			agentRegistry.unregister(this.agent);
+		}
+		this.agent = agent;
+		agentRegistry.register(agent);
+	}
+
 	spawn() {
 		// todo: add males spawn
+		console.log("spawning Egg");
 		const fertilized = Math.random() < 0.1;
 		const egg = new Egg(this.home, fertilized);
 		egg.renderable.position = {

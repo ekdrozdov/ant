@@ -1,21 +1,24 @@
 import { RenderableBase } from "../../renderer/renderable";
-import { EventEmitter } from "../../utils/events";
-import { SceneObjectImpl, type StaticSceneObject } from "../scene/scene";
+import {
+	type Scene,
+	SceneObjectImpl,
+	type StaticSceneObject,
+} from "../scene/scene";
 import { getWorld } from "../world";
 
 export class AntCorpse extends SceneObjectImpl implements StaticSceneObject {
 	kind = "static" as const;
-	private readonly _onDecomposed = new EventEmitter<void>();
-	readonly onDecomposed = this._onDecomposed.event;
 	private remains = 20;
 	constructor() {
 		super(new RenderableBase({ kind: "corpse" }));
+	}
+
+	onMount(scene: Scene): void {
 		this.register(
 			getWorld().clock.onMinute(() => {
-				this.remains -= 10;
-				console.debug(`flesh remains: ${this.remains}`);
+				this.remains = this.remains - 10;
 				if (this.remains <= 0) {
-					this._onDecomposed.dispatch();
+					scene.dismount(this);
 				}
 			}),
 		);

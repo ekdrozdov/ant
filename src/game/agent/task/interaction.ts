@@ -1,9 +1,9 @@
-import type { Ant } from "../../object/ant";
+import type { AntBody } from "../../object/ant";
 import { FoodSourceObject } from "../../object/resource";
 import type { SceneObject } from "../../scene/scene";
 
 export function* enterInteractionRange<Target extends SceneObject>(input: {
-	ant: Ant;
+	ant: AntBody;
 	target: Target;
 }) {
 	const { ant, target } = input;
@@ -17,7 +17,7 @@ export function* enterInteractionRange<Target extends SceneObject>(input: {
 	ant.stop();
 	return target;
 }
-export function* waitForFood(input: { ant: Ant }): Generator<
+export function* waitForFood(input: { ant: AntBody }): Generator<
 	void,
 	FoodSourceObject
 > {

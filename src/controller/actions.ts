@@ -1,6 +1,5 @@
-import { agentRegistry } from "../game/agent/agent";
 import { Scout } from "../game/agent/scout";
-import { AntBase } from "../game/object/antBase";
+import { AntGenericBody } from "../game/object/antBase";
 import { LivingChamber } from "../game/object/buildings";
 import type { Scene } from "../game/scene/scene";
 import { getWorld } from "../game/world";
@@ -58,9 +57,9 @@ class Spawn implements Action {
 			throw new Error(`Event ${spawnContext.event.id} is not supported`);
 		}
 		// TODO: picker.
-		const obj = new AntBase(new LivingChamber());
+		const obj = new AntGenericBody(new LivingChamber());
 		const agent = new Scout(obj);
-		agentRegistry.register(agent);
+		obj.resetAgent(agent);
 		this._scene.mount(obj);
 		const { position } = spawnContext.event;
 		obj.renderable.position.x = position.x;
@@ -80,6 +79,7 @@ export const HALF_SPEED_ACTION_ID = "halfSpeed";
 		execute: () => {
 			freq = freq * 2;
 			freq = Math.min(defaultFreq * 2 * 2 * 2, freq);
+			console.debug(`game clock freq ${freq}`);
 			getWorld().clock.setFreq(freq);
 		},
 	});
@@ -88,6 +88,7 @@ export const HALF_SPEED_ACTION_ID = "halfSpeed";
 		execute: () => {
 			freq = freq / 2;
 			freq = Math.max(defaultFreq / 2 / 2, freq);
+			console.debug(`game clock freq ${freq}`);
 			getWorld().clock.setFreq(freq);
 		},
 	});
@@ -96,6 +97,7 @@ export const PAUSE_ACTION_ID = "pause";
 actionRegistry.register({
 	id: PAUSE_ACTION_ID,
 	execute: () => {
+		console.debug("game paused");
 		getWorld().clock.pause();
 	},
 });
@@ -103,6 +105,7 @@ export const RESUME_ACTION_ID = "resume";
 actionRegistry.register({
 	id: RESUME_ACTION_ID,
 	execute: () => {
+		console.debug("game resumed");
 		getWorld().clock.resume();
 	},
 });

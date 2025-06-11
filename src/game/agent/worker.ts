@@ -1,14 +1,13 @@
 import { config } from "../config";
-import type { Ant } from "../object/ant";
+import type { AntBody } from "../object/ant";
 import type { FoodSourceObject } from "../object/resource";
 import type { Agent } from "./agent";
 import { enterInteractionRange } from "./task/interaction";
 import { type TaskGraph, TaskGraphExecutor, task } from "./task/task";
 import { reachStartOfTrail } from "./task/trail";
 
-
 // Engages into pheromone trails by chance.
-function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
+function* findJob(input: { ant: AntBody }): Generator<void, { ant: AntBody }> {
 	const { ant } = input;
 	while (true) {
 		if (ant.getSurroundingPheromones().some((ph) => ph > 0)) {
@@ -36,7 +35,10 @@ function* findJob(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	}
 }
 
-function* followPheromone(input: { ant: Ant }): Generator<void, { ant: Ant }> {
+function* followPheromone(input: { ant: AntBody }): Generator<
+	void,
+	{ ant: AntBody }
+> {
 	const { ant } = input;
 
 	// Follow the route cutting corners.
@@ -60,7 +62,7 @@ function* followPheromone(input: { ant: Ant }): Generator<void, { ant: Ant }> {
 	}
 }
 
-function createMineTaskGraph(): TaskGraph<{ ant: Ant }, { ant: Ant }> {
+function createMineTaskGraph(): TaskGraph<{ ant: AntBody }, { ant: AntBody }> {
 	// let foodLeft = 1;
 
 	const goToMine = task(followPheromone);
@@ -135,7 +137,7 @@ function createMineTaskGraph(): TaskGraph<{ ant: Ant }, { ant: Ant }> {
 export class Worker implements Agent {
 	private readonly executor: TaskGraphExecutor;
 
-	constructor(private readonly ant: Ant) {
+	constructor(private readonly ant: AntBody) {
 		const findJobTask = task(findJob);
 		const mineTaskGraph = createMineTaskGraph();
 

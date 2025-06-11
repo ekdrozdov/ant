@@ -1,6 +1,6 @@
 import type { ConstructorType } from "../../utils/class";
 import { config } from "../config";
-import type { Ant } from "../object/ant";
+import type { AntBody } from "../object/ant";
 import { Mark } from "../object/mark";
 import { FoodSourceObject } from "../object/resource";
 import type { SceneObject } from "../scene/scene";
@@ -18,7 +18,7 @@ import {
 } from "./task/trail";
 
 function createScanTaskGraph<Target extends SceneObject>(
-	ant: Ant,
+	ant: AntBody,
 	targetClass: ConstructorType<Target>,
 ): TaskGraph<void, Trail> {
 	const trailMaxDistance =
@@ -110,7 +110,7 @@ function createPatrolTrailTaskGraph(): TaskGraph<
 
 	reachEndOfTrailTask.next((input) => {
 		input.ant.emittingFoodPheromone = true;
-		return reachStartOfTrailTask.start(input)
+		return reachStartOfTrailTask.start(input);
 	});
 	reachStartOfTrailTask.next((input) => {
 		input.ant.emittingFoodPheromone = false;
@@ -180,7 +180,7 @@ function createActivateTrailTaskGraph(): TaskGraph<
 export class Scout implements Agent {
 	private readonly executor: TaskGraphExecutor;
 
-	constructor(private readonly ant: Ant) {
+	constructor(private readonly ant: AntBody) {
 		const scanTaskGraph = createScanTaskGraph(this.ant, FoodSourceObject);
 		const activateTrailUntilStartTaskGraph = createActivateTrailTaskGraph();
 		const patrolTrailTaskGraph = createPatrolTrailTaskGraph();

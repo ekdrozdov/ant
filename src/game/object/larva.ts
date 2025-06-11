@@ -1,25 +1,27 @@
 import { RenderableBase } from "../../renderer/renderable";
-import { agentRegistry } from "../agent/agent";
 import { Worker } from "../agent/worker";
 import { config } from "../config";
-import { SceneObjectImpl, type StaticSceneObject } from "../scene/scene";
+import {
+	type Scene,
+	SceneObjectImpl,
+	type StaticSceneObject,
+} from "../scene/scene";
 import { getWorld } from "../world";
-import { AntBase } from "./antBase";
+import { AntGenericBody } from "./antBase";
 import type { Building } from "./buildings";
 import { FoodResource } from "./resource";
 
 export class Larva extends SceneObjectImpl implements StaticSceneObject {
 	readonly kind = "static";
 	readonly role: "worker" | "queen" | "male" = "worker";
-	readonly basicFoodResource = new FoodResource(config.larvaFoodInitAmount);
-	readonly proteinFoodResource = new FoodResource(0);
-	private ageDays = 0;
+	readonly basicFoodResource = new FoodResource(100);
+	readonly proteinFoodResource = new FoodResource(100);
+	private ageMinutes = 0;
 
 	constructor(
 		readonly home: Building,
 		readonly fertilized: boolean,
 	) {
-		console.debug("Creating larva");
 		super(new RenderableBase({ kind: "mark" }));
 		// tasks
 		// emit pheromones to ask for feed
@@ -35,42 +37,48 @@ export class Larva extends SceneObjectImpl implements StaticSceneObject {
 		// JH - juvenile hormone
 	}
 
-	onMount(): void {
+	onMount(scene: Scene): void {
+		const clock = getWorld().clock;
 		this.register(
-			getWorld().clock.onDay(() => {
-				const dtDays = 1;
-				this.develop(dtDays);
-			}),
-		);
-		this.register(
-			getWorld().clock.onMinute(() => {
+			clock.onMinute(() => {
 				// TODO: deplete proteins first and add score.
 				this.basicFoodResource.amount -= config.larvaFoodDepletionPerMinute;
 			}),
 		);
+		this.register(
+			clock.onMinute(() => {
+				if (this.basicFoodResource.amount < 0) {
+					// TODO: add a larva corpse.
+					console.debug("larva dies of starvation");
+					scene.dismount(this);
+				}
+			}),
+		);
+		this.register(
+			clock.onMinute(() => {
+				const dtMinutes = 1;
+				this.develop(dtMinutes);
+			}),
+		);
 	}
 
-	develop(dtDays: number) {
-		if (this.basicFoodResource.amount < 0) {
-			// TODO: add a larva corpse.
-			getWorld().scene.dismount(this);
-		}
-
+	develop(dtMinutes: number) {
 		// Stage completed -> hatch.
-		if (this.ageDays > config.larvaLifetimeDays && Math.random() > 0.5) {
+		if (this.ageMinutes > config.larvaLifetimeMinutes && Math.random() > 0.5) {
 			getWorld().scene.dismount(this);
 			// TODO: add pupa stage.
 			// TODO: spawn male if unfertilized.
-			const ant = new AntBase(this.home);
+			console.debug("spawning ant");
+			const ant = new AntGenericBody(this.home);
 			// pick a role
 			const worker = new Worker(ant);
 			// TODO: who manages it? ant obj should.
-			agentRegistry.register(worker)
+			ant.resetAgent(worker);
 			ant.renderable.position = this.renderable.position;
 			getWorld().scene.mount(ant);
 			return;
 		}
 
-		this.ageDays += dtDays;
+		this.ageMinutes += dtMinutes;
 	}
 }

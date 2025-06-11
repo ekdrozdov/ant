@@ -24,7 +24,7 @@ export const config = {
 	antSensitivityDistance: 10,
 	antPheromoneMarkIntensity: 10,
 
-	larvaLifetimeDays: 18,
+	larvaLifetimeMinutes: 30,// should be 18 days
 	larvaFoodInitAmount: 6,
 	larvaFoodDepletionPerMinute: 0.33,
 	larvaFoodLowAmount: 5,
@@ -32,7 +32,7 @@ export const config = {
 
 	maleLifetimeDays: 18,
 
-	eggStageLifetimeDays: 12,
+	eggStageLifetimeMinutes: 30, // should be 12 days
 
 	pupaStageLifetimeDays: 18,
 

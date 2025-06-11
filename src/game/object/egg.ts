@@ -11,7 +11,7 @@ import { Larva } from "./larva";
 
 export class Egg extends SceneObjectImpl implements StaticSceneObject {
 	readonly kind = "static";
-	private ageDays = 0;
+	private ageMinutes = 0;
 
 	constructor(
 		readonly home: Building,
@@ -22,19 +22,19 @@ export class Egg extends SceneObjectImpl implements StaticSceneObject {
 
 	onMount(scene: Scene): void {
 		this.register(
-			getWorld().clock.onDay(() => {
-				const dtDays = 1;
-				if (this.ageDays > config.eggStageLifetimeDays && Math.random() > 0.5) {
+			getWorld().clock.onMinute(() => {
+				const dtMinutes = 1;
+				if (this.ageMinutes > config.eggStageLifetimeMinutes && Math.random() > 0.5) {
 					// Stage completed -> hatch.
 					scene.dismount(this);
-					console.debug("spawn larva");
+					console.debug("spawning Larva");
 					const larva = new Larva(this.home, this.fertilized);
 					larva.renderable.position = this.renderable.position;
 					scene.mount(larva);
 					return;
 				}
 
-				this.ageDays += dtDays;
+				this.ageMinutes += dtMinutes;
 			}),
 		);
 	}

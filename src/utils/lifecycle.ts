@@ -14,3 +14,9 @@ export class DisposableStorage implements Disposable {
 		this._storage = [];
 	}
 }
+
+export function toDisposable(fn: () => void): Disposable {
+	return {
+		dispose: () => fn(),
+	};
+}

@@ -1,8 +1,8 @@
 import { RenderableBase, type Vector2d } from "../../renderer/renderable";
 import { OrderedCircularBuffer } from "../../utils/buffer";
 import type { ConstructorType } from "../../utils/class";
-import { EventEmitter } from "../../utils/events";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
+import { type Agent, agentRegistry } from "../agent/agent";
 import type { Trail } from "../agent/task/trail";
 import { config } from "../config";
 import {
@@ -12,12 +12,13 @@ import {
 } from "../scene/pheromap";
 import {
 	type DynamicSceneObject,
+	type Scene,
 	type SceneObject,
 	type SceneObjectBase,
 	SceneObjectImpl,
 } from "../scene/scene";
 import { type World, getWorld } from "../world";
-import type { Ant, Pocket } from "./ant";
+import type { AntBody, Pocket } from "./ant";
 import { AntCorpse } from "./antCorpse";
 import type { Building } from "./buildings";
 import { Mark } from "./mark";
@@ -37,9 +38,9 @@ function generateId() {
 	return id++;
 }
 
-export class AntBase
+export class AntGenericBody
 	extends SceneObjectImpl
-	implements Ant, DynamicSceneObject
+	implements AntBody, DynamicSceneObject
 {
 	readonly id: number = generateId();
 	readonly kind = "dynamic";
@@ -52,32 +53,49 @@ export class AntBase
 	protected readonly world: World;
 	private pathTailPositions: OrderedCircularBuffer<Vector2d>;
 
-	private readonly _onDead = new EventEmitter<void>();
-	// TODO: all scene objects must be wether child objects or self-disposable (=self-dismountable).
-	readonly onDead = this._onDead.event;
+	private agent?: Agent;
 
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
-		console.debug("Creating ant");
 		this.world = getWorld();
 		this.pathTailPositions = new OrderedCircularBuffer(
 			trackedPathTailPositions,
 			this.renderable.position,
 		);
+	}
+
+	onMount(scene: Scene): void {
 		this.register(
 			this.world.clock.onMinute(() => {
 				this.food.amount -= config.antFoodDepletionPerMinute;
 				console.debug(`${this.id} food ${this.food.amount}`);
 				if (this.food.amount <= 0) {
+					console.debug(`ant ${this.id} dies of starvation`);
+					scene.dismount(this);
+
+					console.debug("spawning AntCorpse");
 					const corpse = new AntCorpse();
 					corpse.renderable.position = this.renderable.position;
-					this.world.scene.mount(corpse);
-					// TODO: all scene objects must be wether child objects or self-disposable (=self-dismountable).
-					corpse.onDecomposed(() => this.world.scene.dismount(corpse));
-					this._onDead.dispatch();
+					scene.mount(corpse);
 				}
 			}),
 		);
+
+		this.register({
+			dispose: () => {
+				if (this.agent) {
+					agentRegistry.unregister(this.agent);
+				}
+			},
+		});
+	}
+
+	resetAgent(agent: Agent): void {
+		if (this.agent) {
+			agentRegistry.unregister(agent);
+		}
+		this.agent = agent;
+		agentRegistry.register(agent);
 	}
 
 	startPathRecording(): void {

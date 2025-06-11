@@ -1,5 +1,5 @@
 import { config } from "../../config";
-import type { Ant } from "../../object/ant";
+import type { AntBody } from "../../object/ant";
 import { Mark, isMark } from "../../object/mark";
 
 /**
@@ -79,7 +79,7 @@ export class TrailImpl implements Trail {
 }
 
 export type NavigationContext = {
-	ant: Ant;
+	ant: AntBody;
 	trail: Trail;
 };
 

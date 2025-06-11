@@ -1,12 +1,12 @@
 import { config } from "../../config";
-import type { Ant } from "../../object/ant";
+import type { AntBody } from "../../object/ant";
 import type { FoodSourceObject } from "../../object/resource";
 import { waitForFood } from "./interaction";
 import { enterInteractionRange } from "./interaction";
 import { type TaskGraph, task } from "./task";
 import { type NavigationContext, reachStartOfTrail } from "./trail";
 
-export function* eat(input: { ant: Ant; target: FoodSourceObject }) {
+export function* eat(input: { ant: AntBody; target: FoodSourceObject }) {
 	const { ant, target } = input;
 	console.debug(`${ant.id} eat`);
 	while (ant.food.amount < config.antFoodMaxAmount) {
@@ -39,10 +39,10 @@ export function createEatAtHomeTaskGraph(): TaskGraph<NavigationContext, void> {
 		});
 	});
 	enterInteractionRangeTask.next((interactibleFood) => {
-				if (!context) {
-					throw new Error("Context read before assigned.");
-				}
-				return eatTask.start({ ant: context.ant, target: interactibleFood });
+		if (!context) {
+			throw new Error("Context read before assigned.");
+		}
+		return eatTask.start({ ant: context.ant, target: interactibleFood });
 	});
 
 	return {

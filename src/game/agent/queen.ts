@@ -1,12 +1,11 @@
-import type { SettledQueen } from "../object/queen";
+import type { SettledQueenBody } from "../object/queen";
 import type { Agent } from "./agent";
 import { TaskGraphExecutor, task } from "./task/task";
 
-function* reproduce(input: { queen: SettledQueen }): Generator<void, void> {
+function* reproduce(input: { queen: SettledQueenBody }): Generator<void, void> {
 	const { queen } = input;
 	while (true) {
-		if (Math.random() < 0.8) {
-			console.debug("spawn");
+		if (Math.random() < 0.2) {
 			queen.spawn();
 		}
 		yield;
@@ -29,7 +28,7 @@ function* reproduce(input: { queen: SettledQueen }): Generator<void, void> {
 
 export class QueenAgent implements Agent {
 	private readonly executor: TaskGraphExecutor;
-	constructor(queen: SettledQueen) {
+	constructor(queen: SettledQueenBody) {
 		// tasks:
 		// eat
 		// reproduction
