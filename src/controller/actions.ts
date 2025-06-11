@@ -58,8 +58,7 @@ class Spawn implements Action {
 		}
 		// TODO: picker.
 		const obj = new AntGenericBody(new LivingChamber());
-		const agent = new Scout(obj);
-		obj.resetAgent(agent);
+		obj.agent = new Scout(obj);
 		this._scene.mount(obj);
 		const { position } = spawnContext.event;
 		obj.renderable.position.x = position.x;

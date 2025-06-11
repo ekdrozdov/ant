@@ -24,9 +24,12 @@ export class Egg extends SceneObjectImpl implements StaticSceneObject {
 		this.register(
 			getWorld().clock.onMinute(() => {
 				const dtMinutes = 1;
-				if (this.ageMinutes > config.eggStageLifetimeMinutes && Math.random() > 0.5) {
+				if (
+					this.ageMinutes > config.eggStageLifetimeMinutes &&
+					Math.random() > 0.5
+				) {
 					// Stage completed -> hatch.
-					scene.dismount(this);
+					scene.dismountAndDispose(this);
 					console.debug("spawning Larva");
 					const larva = new Larva(this.home, this.fertilized);
 					larva.renderable.position = this.renderable.position;

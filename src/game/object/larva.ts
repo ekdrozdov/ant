@@ -50,7 +50,7 @@ export class Larva extends SceneObjectImpl implements StaticSceneObject {
 				if (this.basicFoodResource.amount < 0) {
 					// TODO: add a larva corpse.
 					console.debug("larva dies of starvation");
-					scene.dismount(this);
+					scene.dismountAndDispose(this);
 				}
 			}),
 		);
@@ -65,15 +65,13 @@ export class Larva extends SceneObjectImpl implements StaticSceneObject {
 	develop(dtMinutes: number) {
 		// Stage completed -> hatch.
 		if (this.ageMinutes > config.larvaLifetimeMinutes && Math.random() > 0.5) {
-			getWorld().scene.dismount(this);
+			getWorld().scene.dismountAndDispose(this);
 			// TODO: add pupa stage.
 			// TODO: spawn male if unfertilized.
 			console.debug("spawning ant");
 			const ant = new AntGenericBody(this.home);
 			// pick a role
-			const worker = new Worker(ant);
-			// TODO: who manages it? ant obj should.
-			ant.resetAgent(worker);
+			ant.agent = new Worker(ant);
 			ant.renderable.position = this.renderable.position;
 			getWorld().scene.mount(ant);
 			return;

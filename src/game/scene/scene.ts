@@ -3,6 +3,7 @@ import type { ConstructorType } from "../../utils/class";
 import { type Event, EventEmitter } from "../../utils/events";
 import { type Disposable, DisposableStorage } from "../../utils/lifecycle";
 import { distance } from "../../utils/math";
+import type { Agent } from "../agent/agent";
 import { config } from "../config";
 import { getNextPositionBatch } from "../physics/movement";
 import { type Indexer, SceneIndexer } from "./indexer";
@@ -23,8 +24,9 @@ export class MetaBase implements Meta {
 export interface SceneObjectBase extends Disposable {
 	readonly meta: Meta;
 	readonly renderable: Renderable;
+	agent?: Agent;
 	onMount?(scene: Scene): void;
-	onDismount(): void;
+	onDismount?(): void;
 }
 
 export interface DynamicSceneObject extends SceneObjectBase {
@@ -50,9 +52,6 @@ export class SceneObjectImpl
 		super();
 		this.meta = new MetaBase();
 	}
-	onDismount(): void {
-		this.dispose();
-	}
 }
 
 export interface MountEvent {
@@ -68,12 +67,14 @@ export interface Scene {
 	readonly onMount: Event<MountEvent>;
 	readonly onDismount: Event<MountEvent>;
 	mount(obj: SceneObject): void;
-	dismount(obj: SceneObject): void;
-	updateBatch(dt: number): void;
+	dismountAndDispose(obj: SceneObject): void;
+	updateBatch(dtSeconds: number): void;
 	all(): readonly SceneObject[];
 	all<T extends SceneObject>(targetClass: new (...args: unknown[]) => T): T[];
 	findObjectsInRadius(center: SceneObject, radius: number): SceneObject[];
 }
+
+let throttleCounter = 0;
 
 export class SceneBase implements Scene {
 	private readonly _onMount = new EventEmitter<MountEvent>();
@@ -83,6 +84,7 @@ export class SceneBase implements Scene {
 	private readonly indexer: Indexer;
 	readonly pheromap: Pheromap;
 	private readonly _objs: SceneObject[] = [];
+	private readonly bodies: Set<Body> = new Set();
 
 	constructor(private readonly size: Vector2d) {
 		this.indexer = new SceneIndexer(100, this.size);
@@ -105,9 +107,10 @@ export class SceneBase implements Scene {
 		this.indexer.register(obj);
 		this._onMount.dispatch({ obj: obj });
 	}
-	
-	dismount(obj: SceneObject): void {
+
+	dismountAndDispose(obj: SceneObject): void {
 		obj.onDismount?.();
+		obj.dispose();
 		const i = this._objs.findIndex((o) => o === obj);
 		if (i === -1) throw new Error("Object is missing.");
 		this._objs.splice(i, 1);
@@ -115,7 +118,7 @@ export class SceneBase implements Scene {
 		this._onDismount.dispatch({ obj: obj });
 	}
 
-	updateBatch(dt: number) {
+	updateBatch(dtSeconds: number) {
 		const nonEmittingMovingObjs: DynamicSceneObject[] = this._objs
 			.filter((o) => o.kind === "dynamic")
 			.filter((o) => o.state === "move")
@@ -140,7 +143,7 @@ export class SceneBase implements Scene {
 		// filetr/map obj to movable or make movable compatible
 		const nonEmittingNextPos: Vector2d[] = getNextPositionBatch(
 			nonEmittingMovingObjs,
-			dt,
+			dtSeconds,
 		);
 
 		// Update position.
@@ -162,7 +165,7 @@ export class SceneBase implements Scene {
 
 		const emittingNextPos: Vector2d[] = getNextPositionBatch(
 			emittingMovingObjs,
-			dt,
+			dtSeconds,
 		);
 
 		// Update position.
@@ -195,6 +198,19 @@ export class SceneBase implements Scene {
 			emittingNextPos,
 			config.antPheromoneMarkIntensity,
 		);
+
+		// TODO: find better way to throttle operations, like dedicated hooks.
+		// Operations throttled to execute no frequent than 5 seconds.
+		if (throttleCounter > 4) {
+			throttleCounter = 0;
+			// Execute agents.
+			for (const obj of this._objs) {
+				if (obj.agent) {
+					obj.agent.execute();
+				}
+			}
+		}
+		throttleCounter += dtSeconds;
 	}
 
 	all(): readonly SceneObject[];

@@ -1,4 +1,3 @@
-import { agentRegistry } from "./game/agent/agent";
 import { QueenAgent } from "./game/agent/queen";
 import { LivingChamber } from "./game/object/buildings";
 import { SettledQueenBodyImpl } from "./game/object/queen";
@@ -58,21 +57,14 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 		x: chamber.renderable.position.x,
 		y: chamber.renderable.position.y,
 	};
-	const queenAgent = new QueenAgent(queen);
-	queen.resetAgent(queenAgent)
+	queen.agent = new QueenAgent(queen);
+	// queen.
 	world.scene.mount(queen);
 
-	let i = 0;
 	// Limit fps with screen frequency rate.
 	// To keep 60 fps, loop execution should took no longer than 16.6 milliseconds.
 	world.clock.onSecond(() => {
-		if (i % 5 === 0) {
-			for (const agent of agentRegistry.agents) {
-				agent.execute();
-			}
-		}
 		world.scene.updateBatch(1);
-		++i;
 	});
 
 	world.clock.setFreq(60);

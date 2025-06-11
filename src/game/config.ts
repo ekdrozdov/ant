@@ -39,4 +39,6 @@ export const config = {
 	queenLifetimeDays: 7300,
 
 	pheromoneDecayPerMinute: 10,
+
+	chamberDegradationPerMinute: 1,
 } as const;

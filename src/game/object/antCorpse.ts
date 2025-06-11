@@ -18,7 +18,7 @@ export class AntCorpse extends SceneObjectImpl implements StaticSceneObject {
 			getWorld().clock.onMinute(() => {
 				this.remains = this.remains - 10;
 				if (this.remains <= 0) {
-					scene.dismount(this);
+					scene.dismountAndDispose(this);
 				}
 			}),
 		);

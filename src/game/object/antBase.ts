@@ -2,7 +2,7 @@ import { RenderableBase, type Vector2d } from "../../renderer/renderable";
 import { OrderedCircularBuffer } from "../../utils/buffer";
 import type { ConstructorType } from "../../utils/class";
 import { PI, PI_2, distance, rotationOf } from "../../utils/math";
-import { type Agent, agentRegistry } from "../agent/agent";
+import type { Agent } from "../agent/agent";
 import type { Trail } from "../agent/task/trail";
 import { config } from "../config";
 import {
@@ -46,14 +46,13 @@ export class AntGenericBody
 	readonly kind = "dynamic";
 	state: "move" | "idle" = "idle";
 	emittingFoodPheromone = false;
-	food = new FoodResource(100);
+	food = new FoodResource(20);
 	readonly pocket: Pocket = { food: new FoodResource() };
 	velocity = config.antVelocity;
 
 	protected readonly world: World;
 	private pathTailPositions: OrderedCircularBuffer<Vector2d>;
-
-	private agent?: Agent;
+	agent?: Agent;
 
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
@@ -71,7 +70,7 @@ export class AntGenericBody
 				console.debug(`${this.id} food ${this.food.amount}`);
 				if (this.food.amount <= 0) {
 					console.debug(`ant ${this.id} dies of starvation`);
-					scene.dismount(this);
+					scene.dismountAndDispose(this);
 
 					console.debug("spawning AntCorpse");
 					const corpse = new AntCorpse();
@@ -80,22 +79,6 @@ export class AntGenericBody
 				}
 			}),
 		);
-
-		this.register({
-			dispose: () => {
-				if (this.agent) {
-					agentRegistry.unregister(this.agent);
-				}
-			},
-		});
-	}
-
-	resetAgent(agent: Agent): void {
-		if (this.agent) {
-			agentRegistry.unregister(agent);
-		}
-		this.agent = agent;
-		agentRegistry.register(agent);
 	}
 
 	startPathRecording(): void {

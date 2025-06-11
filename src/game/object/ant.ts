@@ -1,7 +1,7 @@
 import type { ConstructorType } from "../../utils/class";
+import type { Body } from "../agent/agent";
 import type { Trail } from "../agent/task/trail";
 import type { SceneObject } from "../scene/scene";
-import type { Body } from "./body";
 import type { Building } from "./buildings";
 import type { Mark } from "./mark";
 import type { FoodResource, FoodSourceObject } from "./resource";

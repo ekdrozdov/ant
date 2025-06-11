@@ -1,6 +1,5 @@
 import { RenderableBase } from "../../renderer/renderable";
-import { toDisposable } from "../../utils/lifecycle";
-import { type Agent, agentRegistry } from "../agent/agent";
+import type { Agent, Body } from "../agent/agent";
 import { config } from "../config";
 import {
 	type Scene,
@@ -8,7 +7,6 @@ import {
 	type StaticSceneObject,
 } from "../scene/scene";
 import { getWorld } from "../world";
-import type { Body } from "./body";
 import type { Building } from "./buildings";
 import { Egg } from "./egg";
 import { FoodResource } from "./resource";
@@ -35,7 +33,7 @@ export class SettledQueenBodyImpl
 	private age = 0;
 	private food = new FoodResource(10);
 	private scene!: Scene;
-	private agent?: Agent;
+	agent?: Agent;
 
 	constructor(readonly home: Building) {
 		super(new RenderableBase({ kind: "bunny" }));
@@ -49,26 +47,11 @@ export class SettledQueenBodyImpl
 				console.debug(`queen food ${this.food.amount}`);
 				if (this.food.amount <= 0) {
 					console.debug("queen dies of starvation");
-					scene.dismount(this);
+					scene.dismountAndDispose(this);
 					// todo: dispose related agent
 				}
 			}),
 		);
-		this.register(
-			toDisposable(() => {
-				if (this.agent) {
-					agentRegistry.unregister(this.agent);
-				}
-			}),
-		);
-	}
-
-	resetAgent(agent: Agent): void {
-		if (this.agent) {
-			agentRegistry.unregister(this.agent);
-		}
-		this.agent = agent;
-		agentRegistry.register(agent);
 	}
 
 	spawn() {

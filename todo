@@ -1,10 +1,10 @@
 hive lifecycle
   +main chamber
   +queen
-  queen lifecycle
+  +queen lifecycle
   customizable task freq
-  e2e ant lifecycle
-  roaming workers
+  +e2e ant lifecycle
+  +roaming workers
   chamber maintanence and degradation
 
 mvp hive
