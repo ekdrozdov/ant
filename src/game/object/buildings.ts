@@ -16,23 +16,8 @@ export class Building extends SceneObjectImpl implements StaticSceneObject {
 export class QueenChamber extends Building {}
 
 export class LivingChamber extends Building {
-	private hp = 100;
 	constructor() {
 		super(new RenderableBase({ kind: "chamber" }));
-	}
-
-	onMount(scene: Scene) {
-		const clock = getWorld().clock;
-		this.register(
-			clock.onMinute(() => {
-				if (this.hp < 0) {
-					console.debug("chamber dies");
-					scene.dismountAndDispose(this);
-					return;
-				}
-				this.hp = this.hp - config.chamberDegradationPerMinute;
-			}),
-		);
 	}
 }
 
