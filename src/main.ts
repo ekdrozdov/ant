@@ -1,6 +1,7 @@
-import { QueenAgent } from "./game/agent/queen";
+import { Scout } from "./game/agent/scout";
+import { Worker } from "./game/agent/worker";
+import { AntGenericBody } from "./game/object/antBase";
 import { LivingChamber } from "./game/object/buildings";
-import { SettledQueenBodyImpl } from "./game/object/queen";
 import { WorldBase, initWorld } from "./game/world";
 import { PixiRenderer } from "./renderer/pixi/pixiRenderer";
 import type {} from "./renderer/renderable";
@@ -27,39 +28,30 @@ import { MenuRegistryBase, SpawnerSelector } from "./ui/menu";
 	// TODO: also nested objects must be mounted/dismounted recursively.
 	world.scene.mount(chamber.storage);
 
-	// for (const _ of Array.from(new Array(1))) {
-	// 	const ant = new AntBase(chamber);
-	// 	const scout = new Scout(ant);
-	// 	ant.resetPositionTo({ x: 5000, y: 5000 });
-	// 	world.scene.mount(ant);
-	// 	agentRegistry.register(scout);
-	// 	ant.onDead(() => {
-	// 		agentRegistry.unregister(scout);
-	// 		world.scene.dismount(ant);
-	// 	});
-	// }
+	// const queen = new SettledQueenBodyImpl(chamber);
+	// queen.renderable.position = {
+	// 	x: chamber.renderable.position.x,
+	// 	y: chamber.renderable.position.y,
+	// };
+	// queen.agent = new QueenAgent(queen);
+	// // queen.
+	// world.scene.mount(queen);
 
-	// for (const _ of Array.from(new Array(1))) {
-	// 	const ant = new AntBase(chamber);
-	// 	const worker = new Worker(ant);
-	// 	ant.resetPositionTo({ x: 5000, y: 5000 });
-	// 	world.scene.mount(ant);
-	// 	agentRegistry.register(worker);
-	// 	// let the body manage its agent obj lifecycle
-	// 	ant.onDead(() => {
-	// 		agentRegistry.unregister(worker);
-	// 		world.scene.dismount(ant);
-	// 	});
-	// }
-
-	const queen = new SettledQueenBodyImpl(chamber);
-	queen.renderable.position = {
+	const scout = new AntGenericBody(chamber);
+	scout.renderable.position = {
 		x: chamber.renderable.position.x,
 		y: chamber.renderable.position.y,
 	};
-	queen.agent = new QueenAgent(queen);
-	// queen.
-	world.scene.mount(queen);
+	scout.agent = new Scout(scout);
+	world.scene.mount(scout);
+
+	const worker = new AntGenericBody(chamber);
+	worker.renderable.position = {
+		x: chamber.renderable.position.x,
+		y: chamber.renderable.position.y,
+	};
+	worker.agent = new Worker(worker);
+	world.scene.mount(worker);
 
 	// Limit fps with screen frequency rate.
 	// To keep 60 fps, loop execution should took no longer than 16.6 milliseconds.

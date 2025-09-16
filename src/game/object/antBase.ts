@@ -46,7 +46,7 @@ export class AntGenericBody
 	readonly kind = "dynamic";
 	state: "move" | "idle" = "idle";
 	emittingFoodPheromone = false;
-	food = new FoodResource(20);
+	food = new FoodResource(100);
 	readonly pocket: Pocket = { food: new FoodResource() };
 	velocity = config.antVelocity;
 

@@ -9,6 +9,7 @@ import { type NavigationContext, reachStartOfTrail } from "./trail";
 export function* eat(input: { ant: AntBody; target: FoodSourceObject }) {
 	const { ant, target } = input;
 	console.debug(`${ant.id} eat`);
+	ant.stop();
 	while (ant.food.amount < config.antFoodMaxAmount) {
 		ant.eat(target);
 		yield;
